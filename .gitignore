@@ -1,4 +1,5 @@
 # Env
+.env
 **/.*-env/
 **/.*-venv/
 # File to populate env vars used by Docker test runs
