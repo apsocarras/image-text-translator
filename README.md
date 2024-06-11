@@ -68,7 +68,7 @@ curl -X POST localhost:8080 -H "Content-Type: multipart/form-data" \
 
 ```bash
 gcloud functions deploy extract-and-translate \
-  --gen2 \
+  --gen2 --max-instances 1 \
   --region europe-west2 \
   --runtime=python312 --source=. \
   --trigger-http --entry-point=extract_and_translate \
