@@ -2,7 +2,7 @@
 
 ## Sample Curl Commands
 
-### POSTing images
+### POSTing images, Local Dev
 
 ```bash
 curl -X POST localhost:8080 \
@@ -19,4 +19,13 @@ curl -X POST localhost:8080 \
 
 curl -X GET localhost:8080 -H "Content-Type: application/json" \
    -d '{"bucket":"Bob", "filename":"Whatevs"}'
+```
+
+### POSTimng images, GCP
+
+```bash
+curl -X POST https://europe-west2-image-text-translator-425921.cloudfunctions.net/extract-and-translate \
+    -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
+    -H "Content-Type: multipart/form-data" \
+    -F "uploaded=@ua_meme.jpg"
 ```
