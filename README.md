@@ -14,6 +14,8 @@ A simple application that:
 
 ## Architecture
 
+![Architecture](docs/image-text-translator.png)
+
 - Frontend:
   - In Python and containerised.
   - Hosted in Cloud Run.
@@ -55,4 +57,15 @@ functions-framework --target extract_and_translate --debug
 # test, from another console, e.g.
 curl -X POST localhost:8080 -H "Content-Type: multipart/form-data" \
    -F "uploaded=@/home/path/to/meme.jpg"
+```
+
+## Deploying the Function with Gcloud
+
+```bash
+gcloud functions deploy extract-and-translate \
+  --gen2 \
+  --region europe-west2
+  --runtime=python312 \
+  --source=. \
+  --trigger-http --entry-point=extract_and_translate
 ```
