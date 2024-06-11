@@ -1,0 +1,4 @@
+# functions-framework # installed automatically
+google-cloud-storage
+google-cloud-vision
+google-cloud-translate
