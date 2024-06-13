@@ -1,0 +1,3 @@
+Flask
+requests
+debugpy # Required for debugging.
