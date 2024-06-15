@@ -7,15 +7,15 @@
 ```bash
 curl -X POST localhost:8080 \
    -H "Content-Type: multipart/form-data" \
-   -F "uploaded=@/home/darren/localdev/gcp/image-text-translator/testing/images/ua_meme.jpg"
+   -F "uploaded=@$HOME/localdev/gcp/image-text-translator/testing/images/ua_meme.jpg"
 
 curl -X POST localhost:8080 \
    -H "Content-Type: multipart/form-data" \
-   -F "uploaded=@/home/darren/localdev/gcp/image-text-translator/testing/images/fatrix.jpg"
+   -F "uploaded=@$HOME/localdev/gcp/image-text-translator/testing/images/fatrix.jpg"
 
 curl -X POST localhost:8080 \
    -H "Content-Type: multipart/form-data" \
-   -F "uploaded=@/home/darren/localdev/gcp/image-text-translator/testing/images/img7.jpg"
+   -F "uploaded=@$HOME/localdev/gcp/image-text-translator/testing/images/img7.jpg"
 
 curl -X GET localhost:8080 -H "Content-Type: application/json" \
    -d '{"bucket":"Bob", "filename":"Whatevs"}'
@@ -24,8 +24,11 @@ curl -X GET localhost:8080 -H "Content-Type: application/json" \
 ### POSTimng images, GCP
 
 ```bash
-curl -X POST https://europe-west2-image-text-translator-425921.cloudfunctions.net/extract-and-translate \
+export PROJECT_ID=$(gcloud config list --format='value(core.project)')
+gcloud auth application-default login
+
+curl -X POST https://europe-west2-$PROJECT_ID.cloudfunctions.net/extract-and-translate \
     -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
     -H "Content-Type: multipart/form-data" \
-    -F "uploaded=@ua_meme.jpg"
+    -F "uploaded=@$HOME/localdev/gcp/image-text-translator/testing/images/ua_meme.jpg"
 ```

@@ -2,9 +2,7 @@
 
 ## Overview
 
-An applicatin that allows a user to upload an image containing text.
-The text will be extracted, and translated as required.
-The translated text is returned.
+An application that allows a user to upload an image containing text. The text will be extracted, and translated as required. The translated text is returned.
 
 ### How It Works
 
@@ -16,17 +14,57 @@ The translated text is returned.
 
 - A user wants to translate a meme in Ukrainian, to English.
 
+## Repo Structure
+
+```text
+└── image-text-translator
+    ├── docs
+    ├── infra-tf              - Terraform for installing infra
+    ├── app                   - The Application
+    │   ├── ui-cr               - Browser UI (Cloud Run)
+    │   │   └── ...
+    │   └── backend-gcf         - Backend (Cloud Function)
+    │       └── ...
+    ├── testing
+    │   └── images
+    └── README.md
+```
+
+
 ## Architecture
 
 ![Architecture](docs/image-text-translator.png)
 
-- Frontend:
-  - In Python and containerised.
+- UI:
+  - Python Flask application, containerised.
   - Hosted in Cloud Run.
 - Backend:
   - A Google Cloud Function, in Python.
 
-## Function Design
+## Local Dev Setup
+
+```bash
+# Cloud CLI installed in local Linux environment.
+# See https://cloud.google.com/sdk/docs/install
+
+# Setup Python in Gcloud CLI
+# See https://cloud.google.com/python/docs/setup
+# Create and activate a Python virtual environment
+
+# Setup for local Cloud Run dev
+sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin kubectl google-cloud-cli-skaffold google-cloud-cli-minikube
+
+# Set up envs
+export PROJECT_ID=$(gcloud config list --format='value(core.project)')
+export REGION=europe-west2
+
+# Set default credentials for making API calls from local dev environment
+gcloud auth application-default login
+```
+
+## Function Backend
+
+### Invoking
 
 Two ways to call the function:
 
@@ -37,34 +75,27 @@ Two ways to call the function:
    curl -X GET localhost:8080 -H "Content-Type: application/json" \
      -d '{"bucket":"Bob", "filename":"meme.jpg"}'
 
-## For Local Dev
+### Function Local Dev
 
 ```bash
-# Cloud CLI installed in local Linux environment.
-# Create and activate Python env
+cd app/backend-gcf
 
-# Set up envs
-export PROJECT_ID=$(gcloud config list --format='value(core.project)')
-
-# Set default credentials for making API calls from local dev environment
-gcloud auth application-default login
+# Install Google Cloud SDKs and other requirements (in appropriate folder)
+pip install -r requirements.txt
 
 # Allow local Cloud Functions dev using the framework
 # (This is automatically included when deploying in GCP.)
 pip install functions-framework
-
-# Install Google Cloud SDKs and other requirements (in appropriate folder)
-pip install -r requirements.txt
 
 # Run the function
 functions-framework --target extract_and_translate --debug
 
 # test, from another console, e.g.
 curl -X POST localhost:8080 -H "Content-Type: multipart/form-data" \
-   -F "uploaded=@/home/path/to/meme.jpg"
+   -F "uploaded=@$HOME/path/to/meme.jpg"
 ```
 
-## Deploying the Function with Gcloud
+### Deploying the Function with Gcloud
 
 ```bash
 gcloud functions deploy extract-and-translate \
@@ -87,14 +118,23 @@ Syntax:
 curl -X POST https://europe-west2-<project-id>.cloudfunctions.net/extract-and-translate \
      -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
      -H "Content-Type: multipart/form-data" \
-     -F "uploaded=@/home/path/to/meme.jpg"
+     -F "uploaded=@$HOME/path/to/meme.jpg"
 ```
 
 Sample:
 
 ```bash
-curl -X POST https://europe-west2-image-text-translator-425921.cloudfunctions.net/extract-and-translate \
+gcloud auth application-default login
+export PROJECT_ID=$(gcloud config list --format='value(core.project)')
+export REGION=europe-west2
+
+curl -X POST https://$REGION-$PROJECT_ID.cloudfunctions.net/extract-and-translate \
     -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
     -H "Content-Type: multipart/form-data" \
-    -F "uploaded=@ua_meme.jpg" 
+    -F "uploaded=@$HOME/localdev/gcp/image-text-translator/testing/images/ua_meme.jpg"
+```
+
+## UI with Cloud Run
+
+```bash
 ```
