@@ -57,6 +57,7 @@ sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin kubectl google-clou
 # Set up envs
 export PROJECT_ID=$(gcloud config list --format='value(core.project)')
 export REGION=europe-west2
+export FUNCTIONS_PORT=8081
 
 # Set default credentials for making API calls from local dev environment
 gcloud auth application-default login
@@ -69,10 +70,10 @@ gcloud auth application-default login
 Two ways to call the function:
 
 1. POST the image. E.g. 
-   curl -X POST localhost:8080 -H "Content-Type: multipart/form-data" \
+   curl -X POST localhost:$FUNCTIONS_PORT -H "Content-Type: multipart/form-data" \
    -F "uploaded=@/home/path/to/meme.jpg"
 1. Reference a bucket and filename. E.g.
-   curl -X GET localhost:8080 -H "Content-Type: application/json" \
+   curl -X GET localhost:$FUNCTIONS_PORT -H "Content-Type: application/json" \
      -d '{"bucket":"Bob", "filename":"meme.jpg"}'
 
 ### Function Local Dev

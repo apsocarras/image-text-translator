@@ -5,19 +5,19 @@
 ### POSTing images, Local Dev
 
 ```bash
-curl -X POST localhost:8080 \
+curl -X POST localhost:$FUNCTIONS_PORT \
    -H "Content-Type: multipart/form-data" \
    -F "uploaded=@$HOME/localdev/gcp/image-text-translator/testing/images/ua_meme.jpg"
 
-curl -X POST localhost:8080 \
+curl -X POST localhost:$FUNCTIONS_PORT \
    -H "Content-Type: multipart/form-data" \
    -F "uploaded=@$HOME/localdev/gcp/image-text-translator/testing/images/fatrix.jpg"
 
-curl -X POST localhost:8080 \
+curl -X POST localhost:$FUNCTIONS_PORT \
    -H "Content-Type: multipart/form-data" \
    -F "uploaded=@$HOME/localdev/gcp/image-text-translator/testing/images/img7.jpg"
 
-curl -X GET localhost:8080 -H "Content-Type: application/json" \
+curl -X GET localhost:$FUNCTIONS_PORT -H "Content-Type: application/json" \
    -d '{"bucket":"Bob", "filename":"Whatevs"}'
 ```
 

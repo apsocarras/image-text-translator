@@ -101,7 +101,6 @@ def detect_text(image: vision.Image) -> dict | None:
 
     return message
         
-@functions_framework.cloud_event
 def translate_text(message: dict) -> None:
     """
     Translates the text in the message from the specified source language
