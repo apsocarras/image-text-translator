@@ -4,6 +4,8 @@
 
 An application that allows a user to upload an image containing text. The text will be extracted, and translated as required. The translated text is returned.
 
+This will make use of Google Cloud serverless components, and Google ML APIs.
+
 ### How It Works
 
 1. A user uploads or pastes an image.
@@ -30,7 +32,6 @@ An application that allows a user to upload an image containing text. The text w
     └── README.md
 ```
 
-
 ## Architecture
 
 ![Architecture](docs/image-text-translator.png)
@@ -41,7 +42,11 @@ An application that allows a user to upload an image containing text. The text w
 - Backend:
   - A Google Cloud Function, in Python.
 
-## Local Dev Setup
+## Pre-Reqs
+
+You have created a Google Cloud project.
+
+## Local Dev One Time Setup
 
 ```bash
 # Cloud CLI installed in local Linux environment.
@@ -54,13 +59,23 @@ An application that allows a user to upload an image containing text. The text w
 # Setup for local Cloud Run dev
 sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin kubectl google-cloud-cli-skaffold google-cloud-cli-minikube
 
-# Set up envs
-export PROJECT_ID=$(gcloud config list --format='value(core.project)')
-export REGION=europe-west2
-export FUNCTIONS_PORT=8081
+# Run these commands with each new session
+gcloud auth application-default login  # Set default credentials 
+source ./scripts/setup.sh  # Set up envs
 
-# Set default credentials for making API calls from local dev environment
-gcloud auth application-default login
+# Install the Python dependencies
+python3 -m pip install -r requirements.txt
+
+# Enable necessary APIs
+gcloud services enable cloudbuild.googleapis.com
+gcloud services enable artifactregistry.googleapis.com
+gcloud services enable eventarc.googleapis.com
+gcloud services enable run.googleapis.com
+gcloud services enable logging.googleapis.com
+gcloud services enable pubsub.googleapis.com
+gcloud services enable cloudfunctions.googleapis.com
+gcloud services enable translate.googleapis.com
+gcloud services enable vision.googleapis.com
 ```
 
 ## Function Backend
@@ -81,9 +96,6 @@ Two ways to call the function:
 ```bash
 cd app/backend-gcf
 
-# Install Google Cloud SDKs and other requirements (in appropriate folder)
-pip install -r requirements.txt
-
 # Allow local Cloud Functions dev using the framework
 # (This is automatically included when deploying in GCP.)
 pip install functions-framework
@@ -91,8 +103,8 @@ pip install functions-framework
 # Run the function
 functions-framework --target extract_and_translate --debug
 
-# test, from another console, e.g.
-curl -X POST localhost:8080 -H "Content-Type: multipart/form-data" \
+# Test, from another console, e.g.
+curl -X POST localhost:$FUNCTIONS_PORT -H "Content-Type: multipart/form-data" \
    -F "uploaded=@$HOME/path/to/meme.jpg"
 ```
 
@@ -109,14 +121,14 @@ gcloud functions deploy extract-and-translate \
 
 The function is created with endpoint URL:
 
-`https://europe-west2-<project-id>.cloudfunctions.net/extract-and-translate`
+`https://<region>-<project-id>.cloudfunctions.net/extract-and-translate`
 
 ### Test Function in GCP
 
 Syntax:
 
 ```bash
-curl -X POST https://europe-west2-<project-id>.cloudfunctions.net/extract-and-translate \
+curl -X POST https://<region>-<project-id>.cloudfunctions.net/extract-and-translate \
      -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
      -H "Content-Type: multipart/form-data" \
      -F "uploaded=@$HOME/path/to/meme.jpg"
@@ -126,8 +138,7 @@ Sample:
 
 ```bash
 gcloud auth application-default login
-export PROJECT_ID=$(gcloud config list --format='value(core.project)')
-export REGION=europe-west2
+./scripts/setup.sh
 
 curl -X POST https://$REGION-$PROJECT_ID.cloudfunctions.net/extract-and-translate \
     -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
