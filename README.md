@@ -23,9 +23,9 @@ This will make use of Google Cloud serverless components, and Google ML APIs.
     ├── docs
     ├── infra-tf              - Terraform for installing infra
     ├── app                   - The Application
-    │   ├── ui-cr               - Browser UI (Cloud Run)
+    │   ├── ui_cr               - Browser UI (Cloud Run)
     │   │   └── ...
-    │   └── backend-gcf         - Backend (Cloud Function)
+    │   └── backend_gcf         - Backend (Cloud Function)
     │       └── ...
     ├── testing
     │   └── images
@@ -94,7 +94,7 @@ Two ways to call the function:
 ### Function Local Dev
 
 ```bash
-cd app/backend-gcf
+cd app/backend_gcf
 
 # Allow local Cloud Functions dev using the framework
 # (This is automatically included when deploying in GCP.)

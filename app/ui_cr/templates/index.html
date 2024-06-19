@@ -21,13 +21,22 @@
 
 			<div class="message">
 				<h1>{{message}}</h1>
+				{% with messages = get_flashed_messages() %}
+				  {% if messages %}
+				  <ul class=flashes>
+				  {% for message in messages %}
+					<li>{{ message }}</li>
+				  {% endfor %}
+				  </ul>
+				  {% endif %}
+			    {% endwith %}
 				<h2>Translating to {{to_lang}}</h2>
 			</div>
 
 			<h1>Upload image</h1>
-			<form method=post enctype=multipart/form-data>
-			  <input type=file name=file>
-			  <input type=submit value=Upload>
+			<form method="post" enctype="multipart/form-data">
+			  <input type="file" name="file" />
+			  <input type="submit" value="upload" />
 			</form>
 		</div>
 
