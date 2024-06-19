@@ -6,20 +6,16 @@ import os
 from flask import Flask, flash, request, render_template
 from werkzeug.utils import secure_filename
 
-def create_app(test_config=None):
+def create_app():
     """ Create and configure the app """
     flask_app = Flask(__name__, instance_relative_config=True)
     flask_app.config.from_mapping(
-        SECRET_KEY='dev',
+        SECRET_KEY='dev', # override with FLASK_SECRET_KEY env var
     )
 
-    if test_config is None:
-        # load the instance config, if it exists, when not testing
-        flask_app.config.from_pyfile('config.py', silent=True)
-    else:
-        # load the test config if passed in
-        flask_app.config.from_mapping(test_config)
-
+    # Load envs starting with FLASK_
+    # E.g. FLASK_SECRET_KEY
+    flask_app.config.from_prefixed_env()
     return flask_app
 
 app = create_app()
@@ -56,4 +52,5 @@ def entry():
 
 if __name__ == '__main__':
     server_port = os.environ.get('PORT', '8080')
-    app.run(debug=True, port=server_port, host='0.0.0.0')
+    # todo: resolve debug setting
+    app.run(debug=False, port=server_port, host='0.0.0.0')
