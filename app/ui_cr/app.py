@@ -14,11 +14,12 @@ def create_app():
     )
 
     # Load envs starting with FLASK_
-    # E.g. FLASK_SECRET_KEY
+    # E.g. FLASK_SECRET_KEY, FLASK_PORT
     flask_app.config.from_prefixed_env()
     return flask_app
 
 app = create_app()
+app.logger.debug(app.config)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -51,6 +52,8 @@ def entry():
     return render_template('index.html', message=message, to_lang=to_lang)
 
 if __name__ == '__main__':
+    """ Development only: run 'python app.py'
+    When deploying to Cloud Run, a production-grade WSGI HTTP server,
+    such as Gunicorn, will serve the app. """
     server_port = os.environ.get('PORT', '8080')
-    # todo: resolve debug setting
-    app.run(debug=False, port=server_port, host='0.0.0.0')
+    app.run(debug=True, port=server_port, host='0.0.0.0')

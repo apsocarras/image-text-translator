@@ -8,7 +8,6 @@ Functions:
         The image can be POSTed in the request, or it can be a GCS object reference.
         Test with:
         > functions-framework --target extract_and_translate --debug
-        > curl -X GET localhost:8080 -H "Content-Type: application/json" -d '{"bucket":"Bob", "filename":"Whatevs"}'
         > curl -X POST localhost:8080 -H "Content-Type: multipart/form-data" -F "uploaded=@/home/path/to/image.jpg"
 
     detect_text(image: vision.Image)

@@ -59,7 +59,7 @@ You have created a Google Cloud project.
 # Setup for local Cloud Run dev
 sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin kubectl google-cloud-cli-skaffold google-cloud-cli-minikube
 
-# Run these commands with each new session
+# Run these commands with EVERY new session
 gcloud auth application-default login  # Set default credentials 
 source ./scripts/setup.sh  # Set up envs
 
