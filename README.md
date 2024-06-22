@@ -167,6 +167,50 @@ curl -X POST https://$REGION-$PROJECT_ID.cloudfunctions.net/extract-and-translat
 
 ## UI with Cloud Run
 
+### Local Dev
+
+To launch the Flask app:
+
+```bash
+python app.py
+
+# Or with the Flask command.
+# This will automatically load any environment vars starting FLASK_
+# The --debug tells Flask to automatically reload after any changes
+# and to set the app.logger to debug.
+python -m flask --app app run --debug
+```
+
+A sample VS Code launch configuration for the Flask app:
+
+```json
+{
+    "configurations": [
+        {
+            "name": "Python Debugger: Flask",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "flask",
+            "cwd": "${workspaceFolder}/app/ui_cr",
+            "env": {
+                "FLASK_APP": "app.py",
+                "FLASK_DEBUG": "1",
+                "FLASK_RUN_PORT": "8080"
+            },
+            "args": [
+                "run",
+                "--debug",
+                "--no-debugger",
+                "--no-reload"
+            ],
+            "jinja": true,
+            "autoStartBrowser": false
+        },
+        // Other configurations
+    ]
+}
+```
+
 ```bash
 gcloud functions add-invoker-policy-binding extract-and-translate \
   --member='serviceAccount:CALLING_FUNCTION_IDENTITY'
