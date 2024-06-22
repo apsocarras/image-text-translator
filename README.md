@@ -159,7 +159,7 @@ Sample:
 gcloud auth application-default login
 ./scripts/setup.sh
 
-curl -X POST https://$REGION-$PROJECT_ID.cloudfunctions.net/extract-and-translate \
+curl -X POST $BACKEND_GCF \
     -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
     -H "Content-Type: multipart/form-data" \
     -F "uploaded=@./testing/images/ua_meme.jpg"

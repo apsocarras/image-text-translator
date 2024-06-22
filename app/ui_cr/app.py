@@ -9,11 +9,14 @@ Created: June, 2024
 """
 import os
 import base64
+from io import BytesIO
+import urllib
+import requests
 from flask import Flask, flash, request, render_template
 from werkzeug.utils import secure_filename
+import google.oauth2.id_token
 from google.cloud import translate_v2 as translate
 from PIL import Image
-from io import BytesIO
 
 def create_app():
     """ Create and configure the app """
@@ -27,13 +30,14 @@ def create_app():
     flask_app.config.from_prefixed_env()
     client = translate.Client()
     flask_app.languages = {lang['language']: lang['name'] for lang in client.get_languages()}
+    flask_app.backend_func = os.environ[('BACKEND_GCF', 'undefined')]
     return flask_app
 
 app = create_app()
 for conf in app.config:
-    app.logger.debug(f'{conf}: {app.config[conf]}')
+    app.logger.debug('%s: %s', conf, app.config[conf])
 for lang in app.languages:
-    app.logger.debug(f'{lang}: {app.languages[lang]}')
+    app.logger.debug('%s: %s', lang, app.languages[lang])
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -45,7 +49,7 @@ def allowed_file(filename:str):
 def entry():
     """ Render the upload form """
     message = "Upload your image!"
-   
+
     to_lang = os.environ.get('TO_LANG', 'en')
     encoded_img = ""
 
@@ -64,12 +68,13 @@ def entry():
             flash(f'{secure_filename(filename)} is not a supported image format')
         else:
             filename = secure_filename(file.filename)
-            app.logger.debug(f"Got {secure_filename(filename)}")
+            app.logger.debug("Got %s", filename)
             img = Image.open(file.stream)
             with BytesIO() as buf:
                 img.save(buf, 'jpeg')
                 image_bytes = buf.getvalue()
-            encoded_img = base64.b64encode(image_bytes).decode()  
+            encoded_img = base64.b64encode(image_bytes).decode()
+            
             message = f"Got {secure_filename(filename)}. Feel free to upload a new image."
 
     return render_template('index.html', 
@@ -77,12 +82,40 @@ def entry():
                            message=message, 
                            to_lang=to_lang,
                            img_data=encoded_img), 200
-    
+
+def make_authorized_post_request(endpoint:str, audience:str, image_data, to_lang:str):
+    """
+    Make a POST request to the specified HTTP endpoint by authenticating
+    with the ID token obtained from the google-auth client library
+    using the specified audience value.
+    """
+
+    # Cloud Functions uses your function's URL as the `audience` value
+    # For Cloud Functions, `endpoint` and `audience` should be equal
+
+    auth_req = google.auth.transport.requests.Request()
+    id_token = google.oauth2.id_token.fetch_id_token(auth_req, audience)
+
+    headers = {
+        "Authorization": f"Bearer {id_token}",
+        "Content-Type": "application/json"
+    }
+
+    data = {
+        "image_data": image_data,
+        "to_lang": to_lang
+    }
+
+    # Send the HTTP POST request to the Cloud Function
+    response = requests.post(endpoint, headers=headers, json=data, timeout=10)
+
+    return response
+
 if __name__ == '__main__':
-    """ Development only: 
-      - python app.py
-      - python -m flask --app hello run --debug
-    When deploying to Cloud Run, a production-grade WSGI HTTP server,
-    such as Gunicorn, will serve the app. """
+    # Development only: 
+    # - python app.py
+    # - python -m flask --app hello run --debug
+    # When deploying to Cloud Run, a production-grade WSGI HTTP server,
+    # such as Gunicorn, will serve the app. """
     server_port = os.environ.get('FLASK_RUN_PORT', '8080')
     app.run(debug=True, port=server_port, host='0.0.0.0')

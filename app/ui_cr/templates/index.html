@@ -11,8 +11,6 @@
 
 <body>
     <div class="container">
-        <div class="hero">
-
             <div class="message">
                 <h1>{{message}}</h1>
                 {% with messages = get_flashed_messages() %}
@@ -42,13 +40,9 @@
                 </div>
                 <button type="submit" class="btn">Extract and Translate</button>
             </form>
-        </div>
 
         <div class="results" id="results">
             <!-- Results will be displayed here after submission -->
-            {% if img_data %}
-            <img src="data:image/jpeg;base64,{{ img_data }}" id="img-upload" alt="img_data" class="img-upload"/>
-            {% endif %}
             <div id="extracted-text">
                 {% if extracted_text %}
                     <h2>Extracted Text:</h2>
@@ -61,6 +55,12 @@
                     <p>{{ translation }}</p>
                 {% endif %}
             </div>
+
+            {% if img_data %}
+            <h2>Uploaded Image:</h2>
+            <img src="data:image/jpeg;base64,{{ img_data }}" id="img-upload" alt="img_data" class="img-upload" width="480px" />
+            {% endif %}
+
         </div>
     </div>
 </body>

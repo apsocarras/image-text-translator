@@ -17,8 +17,8 @@ Functions:
         Translate the text from the specified source language to target (default 'en').
 """
 
-import flask
 from html import unescape
+import flask
 
 # https://github.com/GoogleCloudPlatform/functions-framework-python
 import functions_framework
@@ -43,9 +43,10 @@ def extract_and_translate(request) -> None:
     """
 
     # Check if the request method is POST
-    if request.method == 'POST': 
+    if request.method == 'POST':
         # Get the uploaded file from the request
         uploaded = request.files.get('uploaded')  # Assuming the input filename is 'uploaded'
+        to_lang = request.form.get('to_lang', "en")
         print(f"{uploaded=}")
 
         if uploaded: # Process the uploaded file
@@ -61,11 +62,11 @@ def extract_and_translate(request) -> None:
             filename = request.json.get('filename', None)
             print(f"Received {bucket=}, {filename=}")            
         else:
-            raise ValueError("Unknown content type: {}".format(content_type))
-        
+            raise ValueError(f"Unknown content type: {content_type}")
+
         if bucket:
             image = vision.Image(source=vision.ImageSource(gcs_image_uri=f"gs://{bucket}/{filename}"))
-        
+
     # Use the Vision API to extract text from the image
     detected = detect_text(image)
     if detected:
@@ -73,7 +74,7 @@ def extract_and_translate(request) -> None:
         if translated["text"] != "":
             print(translated)
             return translated
-    
+
     return "No text found in the image."
 
 def detect_text(image: vision.Image) -> dict | None:
@@ -99,7 +100,7 @@ def detect_text(image: vision.Image) -> dict | None:
     }
 
     return message
-        
+
 def translate_text(message: dict) -> None:
     """
     Translates the text in the message from the specified source language
@@ -116,7 +117,7 @@ def translate_text(message: dict) -> None:
         "src_lang": src_lang,
         "to_lang": to_lang,
     }
-    
+
     if src_lang != to_lang and src_lang != "und":
         print(f"Translating text into {to_lang}.")
         translated_text = translate_client.translate(
