@@ -1,10 +1,16 @@
 """
-A sample Hello World server.
+Application: image-text-translator - UI
+
+Flask application that processes a user-uploaded image,
+and then makes a call to the backend Cloud Function.
+
+Author: Darren Lester
+Created: June, 2024
 """
 import os
-
 from flask import Flask, flash, request, render_template
 from werkzeug.utils import secure_filename
+from google.cloud import translate_v2 as translate
 
 def create_app():
     """ Create and configure the app """
@@ -22,6 +28,7 @@ app = create_app()
 app.logger.debug(app.config)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+languages = {}
 
 def allowed_file(filename:str):
     """ Check if the filename is allowed. """
@@ -31,6 +38,15 @@ def allowed_file(filename:str):
 def entry():
     """ Render the upload form """
     message = "Upload your image!"
+    
+    if not languages:
+        client = translate.Client()
+        results = client.get_languages()
+        for language in results:
+            languages[language.language] = language.name
+    
+    app.logger.debug(languages)
+    
     to_lang = os.environ.get('TO_LANG', 'en')
 
     if request.method == 'POST':

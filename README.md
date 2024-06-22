@@ -20,16 +20,31 @@ This will make use of Google Cloud serverless components, and Google ML APIs.
 
 ```text
 └── image-text-translator
-    ├── docs
-    ├── infra-tf              - Terraform for installing infra
-    ├── app                   - The Application
-    │   ├── ui_cr               - Browser UI (Cloud Run)
-    │   │   └── ...
-    │   └── backend_gcf         - Backend (Cloud Function)
-    │       └── ...
-    ├── testing
-    │   └── images
-    └── README.md
+    ├── docs/
+    |
+    ├── infra-tf/               - Terraform for installing infra
+    |
+    ├── scripts/                - For environment setup and helper scripts
+    |   └── setup.sh            - Setup helper script
+    |
+    ├── app/                    - The Application
+    │   ├── ui_cr/                - Browser UI (Cloud Run)
+    │   │   ├── static/             - Static content for frontend
+    |   |   ├── templates/          - HTML templates for frontend
+    |   |   ├── app.py              - The Flask application
+    |   |   ├── requirements.txt    - The UI Python requirements
+    |   |   ├── Dockerfile          - Dockerfile to build the Flask container
+    |   |   └── .dockerignore       - Files to ignore in Dockerfile
+    |   |
+    │   └── backend_gcf/          - Backend (Cloud Function)
+    │       ├── main.py             - The backend CF application
+    │       └── requirements.txt    - The backend CF Python requirements
+    |
+    ├── testing/
+    │   └── images/
+    |
+    ├── requirements.txt          - Python requirements for project local dev
+    └── README.md                 - Repo README
 ```
 
 ## Architecture
@@ -94,18 +109,22 @@ Two ways to call the function:
 ### Function Local Dev
 
 ```bash
-cd app/backend_gcf
-
-# Allow local Cloud Functions dev using the framework
-# (This is automatically included when deploying in GCP.)
-pip install functions-framework
-
 # Run the function
-functions-framework --target extract_and_translate --debug
+cd app/backend_gcf
+functions-framework --target extract_and_translate --debug --port $FUNCTIONS_PORT
+```
 
-# Test, from another console, e.g.
+### Testing
+
+Run from another console:
+
+```bash
+gcloud auth application-default login  # Set default credentials 
+source ./scripts/setup.sh # We need our env vars to be set in this console session
+
+# Test the function
 curl -X POST localhost:$FUNCTIONS_PORT -H "Content-Type: multipart/form-data" \
-   -F "uploaded=@$HOME/path/to/meme.jpg"
+   -F "uploaded=@./testing/images/ua_meme.jpg"
 ```
 
 ### Deploying the Function with Gcloud
@@ -143,10 +162,12 @@ gcloud auth application-default login
 curl -X POST https://$REGION-$PROJECT_ID.cloudfunctions.net/extract-and-translate \
     -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
     -H "Content-Type: multipart/form-data" \
-    -F "uploaded=@$HOME/localdev/gcp/image-text-translator/testing/images/ua_meme.jpg"
+    -F "uploaded=@./testing/images/ua_meme.jpg"
 ```
 
 ## UI with Cloud Run
 
 ```bash
+gcloud functions add-invoker-policy-binding extract-and-translate \
+  --member='serviceAccount:CALLING_FUNCTION_IDENTITY'
 ```

@@ -1,5 +1,5 @@
 """
-Application: image-text-translator
+Application: image-text-translator - backend
 Author: Darren Lester
 
 Functions:
