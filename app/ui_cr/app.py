@@ -8,9 +8,12 @@ Author: Darren Lester
 Created: June, 2024
 """
 import os
+import base64
 from flask import Flask, flash, request, render_template
 from werkzeug.utils import secure_filename
 from google.cloud import translate_v2 as translate
+from PIL import Image
+from io import BytesIO
 
 def create_app():
     """ Create and configure the app """
@@ -44,10 +47,12 @@ def entry():
     message = "Upload your image!"
    
     to_lang = os.environ.get('TO_LANG', 'en')
+    encoded_img = ""
 
     if request.method == 'POST':
         app.logger.debug("Got POST")
         file = request.files.get('file')
+        to_lang = request.form.get('to_lang')
 
         # check if the post request has the file part
         if file is None:
@@ -59,10 +64,20 @@ def entry():
             flash(f'{secure_filename(filename)} is not a supported image format')
         else:
             filename = secure_filename(file.filename)
+            app.logger.debug(f"Got {secure_filename(filename)}")
+            img = Image.open(file.stream)
+            with BytesIO() as buf:
+                img.save(buf, 'jpeg')
+                image_bytes = buf.getvalue()
+            encoded_img = base64.b64encode(image_bytes).decode()  
             message = f"Got {secure_filename(filename)}. Feel free to upload a new image."
 
-    return render_template('index.html', message=message, to_lang=to_lang)
-
+    return render_template('index.html', 
+                           languages=app.languages, 
+                           message=message, 
+                           to_lang=to_lang,
+                           img_data=encoded_img), 200
+    
 if __name__ == '__main__':
     """ Development only: 
       - python app.py
