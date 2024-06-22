@@ -22,13 +22,17 @@ def create_app():
     # Load envs starting with FLASK_
     # E.g. FLASK_SECRET_KEY, FLASK_PORT
     flask_app.config.from_prefixed_env()
+    client = translate.Client()
+    flask_app.languages = {lang['language']: lang['name'] for lang in client.get_languages()}
     return flask_app
 
 app = create_app()
-app.logger.debug(app.config)
+for conf in app.config:
+    app.logger.debug(f'{conf}: {app.config[conf]}')
+for lang in app.languages:
+    app.logger.debug(f'{lang}: {app.languages[lang]}')
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-languages = {}
 
 def allowed_file(filename:str):
     """ Check if the filename is allowed. """
@@ -38,15 +42,7 @@ def allowed_file(filename:str):
 def entry():
     """ Render the upload form """
     message = "Upload your image!"
-    
-    if not languages:
-        client = translate.Client()
-        results = client.get_languages()
-        for language in results:
-            languages[language.language] = language.name
-    
-    app.logger.debug(languages)
-    
+   
     to_lang = os.environ.get('TO_LANG', 'en')
 
     if request.method == 'POST':
@@ -68,8 +64,10 @@ def entry():
     return render_template('index.html', message=message, to_lang=to_lang)
 
 if __name__ == '__main__':
-    """ Development only: run 'python app.py'
+    """ Development only: 
+      - python app.py
+      - python -m flask --app hello run --debug
     When deploying to Cloud Run, a production-grade WSGI HTTP server,
     such as Gunicorn, will serve the app. """
-    server_port = os.environ.get('PORT', '8080')
+    server_port = os.environ.get('FLASK_RUN_PORT', '8080')
     app.run(debug=True, port=server_port, host='0.0.0.0')
