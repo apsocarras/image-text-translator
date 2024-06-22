@@ -1,53 +1,67 @@
 <!doctype html>
-<html lang=en>
+<html lang="en">
 <head>
-<meta charset=utf-8>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Image Text Translator</title>
-<link href="https://fonts.googleapis.com/css?family=Roboto" rel="preload" as="font">
-<link href="/static/cloud-run-32-color.png" rel="icon" type="image/png" />
-<link href="/static/style.css" rel="stylesheet" type="text/css" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Image Text Translator</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="preload" as="font">
+    <link href="/static/cloud-run-32-color.png" rel="icon" type="image/png" />
+    <link href="/static/style.css" rel="stylesheet" type="text/css" />
 </head>
 
 <body>
-	<div class="container">
-		<div class="hero">
-			<div style="text-align:center;">
-				<picture>
-					<source srcset="/static/celebration-dark.svg" media="(prefers-color-scheme: dark)">
-					<img src="/static/celebration.svg" alt="A group celebrating" width="427" height="231">
-				</picture>
-			</div>
+    <div class="container">
+        <div class="hero">
 
-			<div class="message">
-				<h1>{{message}}</h1>
-				{% with messages = get_flashed_messages() %}
-				  {% if messages %}
-				  <ul class=flashes>
-				  {% for message in messages %}
-					<li>{{ message }}</li>
-				  {% endfor %}
-				  </ul>
-				  {% endif %}
-			    {% endwith %}
-				<h2>Translating to {{to_lang}}</h2>
-			</div>
+            <div class="message">
+                <h1>{{message}}</h1>
+                {% with messages = get_flashed_messages() %}
+                  {% if messages %}
+                  <ul class=flashes>
+                  {% for message in messages %}
+                    <li>{{ message }}</li>
+                  {% endfor %}
+                  </ul>
+                  {% endif %}
+                {% endwith %}
+                <h2>Translating to {{to_lang}}</h2>
+            </div>
 
-			<h1>Upload image</h1>
-			<form method="post" enctype="multipart/form-data">
-			  <input type="file" name="file" />
-			  <input type="submit" value="upload" />
-			</form>
-		</div>
+            <h1>Image Text Translator</h1>
+            <form method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="language">Choose Translation Language:</label>
+                    <select name="language" id="language">
+                        <!-- Languages will be populated here from app.py -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="image">Upload Image:</label>
+                    <input type="file" name="file" id="image">
+                </div>
+                <button type="submit" class="btn">Extract and Translate</button>
+            </form>
+        </div>
 
-		<div class="details">
-			<p class="callout">
-				You can deploy any container to Cloud Run that listens for HTTP requests on the port defined by the
-				<code>PORT</code> environment variable.
-				Cloud Run will scale automatically based on requests and you never have to worry about
-				infrastructure.
-			</p>
-		</div>
-	</div>
+
+        <div class="results" id="results">
+            <!-- Results will be displayed here after submission -->
+            {% if image_url %}
+                <img src="{{ image_url }}" alt="Uploaded Image" id="uploaded-image">
+            {% endif %}
+            <div id="extracted-text">
+                {% if extracted_text %}
+                    <h2>Extracted Text:</h2>
+                    <p>{{ extracted_text }}</p>
+                {% endif %}
+            </div>
+            <div id="translation">
+                {% if translation %}
+                    <h2>Translation:</h2>
+                    <p>{{ translation }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </body>
 </html>
