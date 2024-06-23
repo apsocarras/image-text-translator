@@ -8,7 +8,10 @@ Functions:
         The image can be POSTed in the request, or it can be a GCS object reference.
         Test with:
         > functions-framework --target extract_and_translate --debug
-        > curl -X POST localhost:8080 -H "Content-Type: multipart/form-data" -F "uploaded=@/home/path/to/image.jpg"
+        > curl -X POST localhost:8080 \
+            -H "Content-Type: multipart/form-data" \
+            -F "uploaded=@/home/path/to/image.jpg" \
+            -F "to_lang=en"
 
     detect_text(image: vision.Image)
         Extract the text from the Image object.
@@ -47,7 +50,9 @@ def extract_and_translate(request) -> None:
         # Get the uploaded file from the request
         uploaded = request.files.get('uploaded')  # Assuming the input filename is 'uploaded'
         to_lang = request.form.get('to_lang', "en")
-        print(f"{uploaded=}")
+        print(f"{uploaded=}, {to_lang=}")
+        if not uploaded:
+            raise ValueError("No file uploaded}")
 
         if uploaded: # Process the uploaded file
             file_contents = uploaded.read()  # Read the file contents
@@ -60,7 +65,9 @@ def extract_and_translate(request) -> None:
         if content_type == 'application/json':
             bucket = request.json.get('bucket', None)
             filename = request.json.get('filename', None)
-            print(f"Received {bucket=}, {filename=}")            
+            to_lang = request.json.get('to_lang', "en")
+            
+            print(f"Received {bucket=}, {filename=}, {to_lang=}")            
         else:
             raise ValueError(f"Unknown content type: {content_type}")
 
@@ -70,7 +77,7 @@ def extract_and_translate(request) -> None:
     # Use the Vision API to extract text from the image
     detected = detect_text(image)
     if detected:
-        translated = translate_text(detected)
+        translated = translate_text(detected, to_lang)
         if translated["text"] != "":
             print(translated)
             return translated
@@ -101,7 +108,7 @@ def detect_text(image: vision.Image) -> dict | None:
 
     return message
 
-def translate_text(message: dict) -> None:
+def translate_text(message: dict, to_lang: str) -> dict:
     """
     Translates the text in the message from the specified source language
     to the requested target language, then sends a message requesting another
@@ -110,7 +117,6 @@ def translate_text(message: dict) -> None:
 
     text = message["text"]
     src_lang = message["src_lang"]
-    to_lang = "en"
 
     translated = { # before translating
         "text": text,

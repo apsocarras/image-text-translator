@@ -59,7 +59,14 @@ This will make use of Google Cloud serverless components, and Google ML APIs.
 
 ## Pre-Reqs
 
-You have created a Google Cloud project.
+- You have created a Google Cloud project.
+- You have granted necessary roles to the account you will be developing with, e.g.
+
+```bash
+gcloud projects add-iam-policy-binding image-text-translator-425921 \
+  --member="group:gcp-devops@my-org.com" \
+  --role roles/run.admin
+```
 
 ## Local Dev One Time Setup
 
