@@ -66,21 +66,24 @@ def entry():
         else:
             filename = secure_filename(file.filename)
             app.logger.debug("Got %s", filename)
-            
+
             # We don't need to save the image. We just want to binary encode it.
             img = Image.open(file.stream)
             with BytesIO() as buf:
                 img.save(buf, 'jpeg')
                 image_bytes = buf.getvalue()
             encoded_img = base64.b64encode(image_bytes).decode()
-            
+
             message = f"Got {secure_filename(filename)}. Feel free to upload a new image."
-            func_response = make_authorized_post_request(app.backend_func, app.backend_func, encoded_img, to_lang)
+            func_response = make_authorized_post_request(app.backend_func,
+                                                         app.backend_func,
+                                                         encoded_img,
+                                                         to_lang)
             app.logger.debug("Got response: %s", func_response)
 
-    return render_template('index.html', 
-                           languages=app.languages, 
-                           message=message, 
+    return render_template('index.html',
+                           languages=app.languages,
+                           message=message,
                            to_lang=to_lang,
                            img_data=encoded_img), 200
 
@@ -113,7 +116,7 @@ def make_authorized_post_request(endpoint:str, audience:str, image_data, to_lang
     return response
 
 if __name__ == '__main__':
-    # Development only: 
+    # Development only:
     # - python app.py
     # - python -m flask --app hello run --debug
     # When deploying to Cloud Run, a production-grade WSGI HTTP server,

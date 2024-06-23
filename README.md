@@ -98,6 +98,7 @@ gcloud services enable pubsub.googleapis.com
 gcloud services enable cloudfunctions.googleapis.com
 gcloud services enable translate.googleapis.com
 gcloud services enable vision.googleapis.com
+gcloud services enable iamcredentials.googleapis.com
 ```
 
 ## Function Backend
