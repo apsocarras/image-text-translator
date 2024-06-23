@@ -17,6 +17,11 @@ curl -X POST localhost:$FUNCTIONS_PORT \
 
 curl -X POST localhost:$FUNCTIONS_PORT \
    -H "Content-Type: multipart/form-data" \
+   -F "uploaded=@./testing/images/fatrix.jpg" \
+   -F "to_lang=uk"
+
+curl -X POST localhost:$FUNCTIONS_PORT \
+   -H "Content-Type: multipart/form-data" \
    -F "uploaded=@./testing/images/img7.jpg" \
    -F "to_lang=en"
 
@@ -35,4 +40,16 @@ curl -X POST $BACKEND_GCF \
     -H "Content-Type: multipart/form-data" \
     -F "uploaded=@$HOME/localdev/gcp/image-text-translator/testing/images/ua_meme.jpg" \
     -F "to_lang=en"
+
+curl -X POST $BACKEND_GCF \
+    -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
+    -H "Content-Type: multipart/form-data" \
+    -F "uploaded=@$HOME/localdev/gcp/image-text-translator/testing/images/funerals.jpg" \
+    -F "to_lang=en"
+
+curl -X POST $BACKEND_GCF \
+    -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
+    -H "Content-Type: multipart/form-data" \
+    -F "uploaded=@$HOME/localdev/gcp/image-text-translator/testing/images/fatrix.jpg" \
+    -F "to_lang=uk"
 ```

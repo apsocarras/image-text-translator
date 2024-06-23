@@ -34,7 +34,8 @@ vision_client = vision.ImageAnnotatorClient()
 translate_client = translate.Client()
 storage_client = storage.Client()
 
-def extract_and_translate(request) -> None:
+@functions_framework.http
+def extract_and_translate(request):
     """Extract and translate the text from an image.
     The image can be POSTed in the request, or it can be a GCS object reference.
     
@@ -52,13 +53,13 @@ def extract_and_translate(request) -> None:
         to_lang = request.form.get('to_lang', "en")
         print(f"{uploaded=}, {to_lang=}")
         if not uploaded:
-            raise ValueError("No file uploaded}")
+            return flask.jsonify({"error": "No file uploaded."}), 400
 
         if uploaded: # Process the uploaded file
             file_contents = uploaded.read()  # Read the file contents
             image = vision.Image(content=file_contents)
         else:
-            raise ValueError("Unable to read uploaded file")
+            return flask.jsonify({"error": "Unable to read uploaded file."}), 400
     else:
         # If we haven't created this, then get it from the bucket instead
         content_type = request.headers.get('content-type', 'null')
@@ -66,10 +67,10 @@ def extract_and_translate(request) -> None:
             bucket = request.json.get('bucket', None)
             filename = request.json.get('filename', None)
             to_lang = request.json.get('to_lang', "en")
-            
+
             print(f"Received {bucket=}, {filename=}, {to_lang=}")            
         else:
-            raise ValueError(f"Unknown content type: {content_type}")
+            return flask.jsonify({"error": "Unknown content type."}), 400
 
         if bucket:
             image = vision.Image(source=vision.ImageSource(gcs_image_uri=f"gs://{bucket}/{filename}"))
@@ -80,7 +81,7 @@ def extract_and_translate(request) -> None:
         translated = translate_text(detected, to_lang)
         if translated["text"] != "":
             print(translated)
-            return translated
+            return translated["text"]
 
     return "No text found in the image."
 

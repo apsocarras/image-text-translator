@@ -1,6 +1,11 @@
 export PROJECT_ID=$(gcloud config list --format='value(core.project)')
 export REGION=europe-west2
+export SVC_ACCOUNT=image-text-translator-sa
+export SVC_ACCOUNT_EMAIL=$SVC_ACCOUNT@$PROJECT_ID.iam.gserviceaccount.com
+
+gcloud auth application-default login
 export GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/application_default_credentials.json
+# gcloud auth application-default login --impersonate-service-account $SVC_ACCOUNT_EMAIL
 
 # Functions
 export FUNCTIONS_PORT=8081
@@ -13,9 +18,7 @@ export FLASK_RUN_PORT=8080
 echo "Environment variables configured:"
 echo PROJECT_ID="$PROJECT_ID"
 echo REGION="$REGION"
-echo GOOGLE_APPLICATION_CREDENTIALS="$GOOGLE_APPLICATION_CREDENTIALS"
+echo SVC_ACCOUNT_EMAIL="$SVC_ACCOUNT_EMAIL"
 echo BACKEND_GCF="$BACKEND_GCF"
 echo FUNCTIONS_PORT="$FUNCTIONS_PORT"
 echo FLASK_RUN_PORT="$FLASK_RUN_PORT"
-
-

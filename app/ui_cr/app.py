@@ -14,6 +14,8 @@ import requests
 from flask import Flask, flash, request, render_template
 from werkzeug.utils import secure_filename
 import google.oauth2.id_token
+from google.auth.transport.requests import Request as GoogleAuthRequest
+from google.auth.exceptions import RefreshError
 from google.cloud import translate_v2 as translate
 from PIL import Image
 
@@ -50,6 +52,7 @@ def entry():
     message = "Upload your image!"
     to_lang = os.environ.get('TO_LANG', 'en')
     encoded_img = ""
+    translation = ""
 
     if request.method == 'POST': # Form has been posted
         app.logger.debug("Got POST")
@@ -66,6 +69,7 @@ def entry():
         else:
             filename = secure_filename(file.filename)
             app.logger.debug("Got %s", filename)
+            app.logger.debug("Translating to %s", to_lang)
 
             # We don't need to save the image. We just want to binary encode it.
             img = Image.open(file.stream)
@@ -75,43 +79,58 @@ def entry():
             encoded_img = base64.b64encode(image_bytes).decode()
 
             message = f"Got {secure_filename(filename)}. Feel free to upload a new image."
-            func_response = make_authorized_post_request(app.backend_func,
-                                                         app.backend_func,
-                                                         encoded_img,
-                                                         to_lang)
-            app.logger.debug("Got response: %s", func_response)
+            func_response = make_authorized_post_request(endpoint=app.backend_func,
+                                                         image_data=image_bytes,
+                                                         to_lang=to_lang,
+                                                         filename=filename)
+            app.logger.debug("Function response code: %s", func_response.status_code)
+            app.logger.debug("Function response text: %s", func_response.text)
+            translation = func_response.text
 
     return render_template('index.html',
                            languages=app.languages,
                            message=message,
                            to_lang=to_lang,
-                           img_data=encoded_img), 200
+                           img_data=encoded_img,
+                           translation=translation), 200
 
-def make_authorized_post_request(endpoint:str, audience:str, image_data, to_lang:str):
+def make_authorized_post_request(endpoint:str, image_data, to_lang:str, filename:str):
     """
     Make a POST request to the specified HTTP endpoint by authenticating
     with the ID token obtained from the google-auth client library
     using the specified audience value.
     """
+    if endpoint == "undefined":
+        raise ValueError("Unable to retrieve Function endpoint.")
 
     # Cloud Functions uses your function's URL as the `audience` value
     # For Cloud Functions, `endpoint` and `audience` should be equal
     # ADC requires valid service account credentials
-    auth_req = google.auth.transport.requests.Request()
-    id_token = google.oauth2.id_token.fetch_id_token(auth_req, audience)
+    audience = endpoint
+
+    # Retrieve service account credentials
+    auth_req = GoogleAuthRequest()
+    creds, project_id = google.auth.default()
+
+    try:
+        creds.refresh(auth_req) # refresh if expired
+        id_token = creds.id_token # for local auth
+    except (AttributeError, RefreshError) as e:
+        app.logger.error(e)
+        id_token = google.oauth2.id_token.fetch_id_token(auth_req, audience)
 
     headers = {
         "Authorization": f"Bearer {id_token}",
-        "Content-Type": "application/json"
+        # "Content-Type": "multipart/form-data" # Let requests library decide on the content-type
     }
 
-    data = {
-        "image_data": image_data,
-        "to_lang": to_lang
+    files = {
+        "uploaded": (filename, image_data, 'image/jpeg'),
+        "to_lang": (None, to_lang)
     }
 
     # Send the HTTP POST request to the Cloud Function
-    response = requests.post(endpoint, headers=headers, json=data, timeout=10)
+    response = requests.post(endpoint, headers=headers, files=files, timeout=10)
 
     return response
 
