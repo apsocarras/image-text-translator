@@ -39,7 +39,7 @@ def extract_and_translate(request):
     """Extract and translate the text from an image.
     The image can be POSTed in the request, or it can be a GCS object reference.
     
-    If a POSTed image, enctype should be multipart/form-data and the file should be named 'uploaded'.
+    If a POSTed image, enctype should be multipart/form-data and the file named 'uploaded'.
     If we're passing a GCS object reference, content-type should be 'application/json', 
     with two attributes:
     - bucket: name of GCS bucket in which the file is stored.
@@ -68,7 +68,7 @@ def extract_and_translate(request):
             filename = request.json.get('filename', None)
             to_lang = request.json.get('to_lang', "en")
 
-            print(f"Received {bucket=}, {filename=}, {to_lang=}")            
+            print(f"Received {bucket=}, {filename=}, {to_lang=}")
         else:
             return flask.jsonify({"error": "Unknown content type."}), 400
 
@@ -137,7 +137,7 @@ def translate_text(message: dict, to_lang: str) -> dict:
         }
     else:
         print("No translation required.")
-    
+
     return translated
 
 @functions_framework.http
