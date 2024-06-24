@@ -15,7 +15,6 @@ from flask import Flask, flash, request, render_template
 from werkzeug.utils import secure_filename
 import google.oauth2.id_token
 from google.auth.transport.requests import Request as GoogleAuthRequest
-from google.auth.exceptions import RefreshError
 from google.cloud import translate_v2 as translate
 from PIL import Image
 
@@ -74,7 +73,8 @@ def entry():
             # We don't need to save the image. We just want to binary encode it.
             img = Image.open(file.stream)
             with BytesIO() as buf:
-                img.save(buf, 'jpeg')
+                img.save(buf, img.format.lower())
+                content_type = f"image/{img.format.lower()}"
                 image_bytes = buf.getvalue()
             encoded_img = base64.b64encode(image_bytes).decode()
 
@@ -82,7 +82,8 @@ def entry():
             func_response = make_authorized_post_request(endpoint=app.backend_func,
                                                          image_data=image_bytes,
                                                          to_lang=to_lang,
-                                                         filename=filename)
+                                                         filename=filename,
+                                                         content_type=content_type)
             app.logger.debug("Function response code: %s", func_response.status_code)
             app.logger.debug("Function response text: %s", func_response.text)
             translation = func_response.text
@@ -94,7 +95,7 @@ def entry():
                            img_data=encoded_img,
                            translation=translation), 200
 
-def make_authorized_post_request(endpoint:str, image_data, to_lang:str, filename:str):
+def make_authorized_post_request(endpoint:str, image_data, to_lang:str, filename:str, content_type:str):
     """
     Make a POST request to the specified HTTP endpoint by authenticating with the ID token
     obtained from the google-auth client library using the specified audience value.
@@ -120,7 +121,7 @@ def make_authorized_post_request(endpoint:str, image_data, to_lang:str, filename
     }
 
     files = {
-        "uploaded": (filename, image_data, 'image/jpeg'),
+        "uploaded": (filename, image_data, content_type),
         "to_lang": (None, to_lang)
     }
 
