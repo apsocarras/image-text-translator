@@ -3,9 +3,8 @@ export REGION=europe-west2
 export SVC_ACCOUNT=image-text-translator-sa
 export SVC_ACCOUNT_EMAIL=$SVC_ACCOUNT@$PROJECT_ID.iam.gserviceaccount.com
 
-gcloud auth application-default login
-export GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/application_default_credentials.json
-# gcloud auth application-default login --impersonate-service-account $SVC_ACCOUNT_EMAIL
+# gcloud auth application-default login
+export GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/$SVC_ACCOUNT.json
 
 # Functions
 export FUNCTIONS_PORT=8081

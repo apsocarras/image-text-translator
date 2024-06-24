@@ -37,8 +37,8 @@ def create_app():
 app = create_app()
 for conf in app.config:
     app.logger.debug('%s: %s', conf, app.config[conf])
-for lang in app.languages:
-    app.logger.debug('%s: %s', lang, app.languages[lang])
+# for lang in app.languages:
+#     app.logger.debug('%s: %s', lang, app.languages[lang])
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -107,17 +107,12 @@ def make_authorized_post_request(endpoint:str, image_data, to_lang:str, filename
     # For Cloud Functions, `endpoint` and `audience` should be equal
     # ADC requires valid service account credentials
     audience = endpoint
-
-    # Retrieve service account credentials
     auth_req = GoogleAuthRequest()
-    creds, project_id = google.auth.default()
 
-    try:
-        creds.refresh(auth_req) # refresh if expired
-        id_token = creds.id_token # for local auth
-    except (AttributeError, RefreshError) as e:
-        app.logger.error(e)
-        id_token = google.oauth2.id_token.fetch_id_token(auth_req, audience)
+    # Requests OAuth 2.0 access token for the service identity
+    # from the instance metadata server or with local ADC. E.g.
+    # export GOOGLE_APPLICATION_CREDENTIALS=/path/to/svc_account.json
+    id_token = google.oauth2.id_token.fetch_id_token(auth_req, audience)        
 
     headers = {
         "Authorization": f"Bearer {id_token}",

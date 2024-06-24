@@ -65,6 +65,10 @@ This will make use of Google Cloud serverless components, and Google ML APIs.
 - Enable the necessary APIs.
 
 ```bash
+# Check we have the correct project selected
+export PROJECT_ID=<enter your project ID>
+gcloud config set project $PROJECT_ID
+
 # Enable necessary APIs
 gcloud services enable cloudbuild.googleapis.com
 gcloud services enable artifactregistry.googleapis.com
@@ -81,12 +85,8 @@ gcloud services enable iamcredentials.googleapis.com
 - Setup service account and assign roles:
 
 ```bash
-export PROJECT_ID=<enter your project ID>
 export SVC_ACCT=image-text-translator-sa
 export SVC_ACCOUNT_EMAIL=$SVC_ACCT@$PROJECT_ID.iam.gserviceaccount.com
-
-# Check we have the correct project selected
-gcloud config set project $PROJECT_ID
 
 # Attaching a user-managed service account is the preferred way to provide credentials to ADC for production code running on Google Cloud.
 gcloud iam service-accounts create $SVC_ACCT
@@ -113,17 +113,14 @@ gcloud iam service-accounts add-iam-policy-binding $SVC_ACCOUNT_EMAIL \
   --member="group:gcp-devops@my-org.com" \
   --role=roles/iam.serviceAccountUser
 
+# Allow service account impersonation
 gcloud iam service-accounts add-iam-policy-binding $SVC_ACCOUNT_EMAIL \
   --member="group:gcp-devops@my-org.com" \
   --role=roles/iam.serviceAccountTokenCreator
 
-# Ensure your account has access to deploy to Cloud Functions and Cloud run
-# gcloud projects add-iam-policy-binding $PROJECT_ID \
-#   --member="group:gcp-devops@my-org.com" \
-#   --role roles/run.admin
-
-# Use service account impersonation to create a local ADC file
-gcloud auth application-default login
+# Create a service account key for local dev
+gcloud iam service-accounts keys create ~/.config/gcloud/$SVC_ACCOUNT.json \
+  --iam-account=$SVC_ACCOUNT_EMAIL
 ```
 
 ### Local Dev One Time Setup
