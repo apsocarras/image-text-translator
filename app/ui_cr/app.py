@@ -113,7 +113,7 @@ def make_authorized_post_request(endpoint:str, image_data, to_lang:str, filename
     # Requests OAuth 2.0 access token for the service identity
     # from the instance metadata server or with local ADC. E.g.
     # export GOOGLE_APPLICATION_CREDENTIALS=/path/to/svc_account.json
-    id_token = google.oauth2.id_token.fetch_id_token(auth_req, audience)        
+    id_token = google.oauth2.id_token.fetch_id_token(auth_req, audience)
 
     headers = {
         "Authorization": f"Bearer {id_token}",
