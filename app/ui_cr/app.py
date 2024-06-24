@@ -96,9 +96,9 @@ def entry():
 
 def make_authorized_post_request(endpoint:str, image_data, to_lang:str, filename:str):
     """
-    Make a POST request to the specified HTTP endpoint by authenticating
-    with the ID token obtained from the google-auth client library
-    using the specified audience value.
+    Make a POST request to the specified HTTP endpoint by authenticating with the ID token
+    obtained from the google-auth client library using the specified audience value.
+    Expects the image_data to be a bytes representation of the image.
     """
     if endpoint == "undefined":
         raise ValueError("Unable to retrieve Function endpoint.")
