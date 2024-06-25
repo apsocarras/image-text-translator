@@ -65,12 +65,16 @@ This will make use of Google Cloud serverless components, and Google ML APIs.
 - Enable the necessary APIs.
 
 ```bash
+# Authenticate to Google Cloud
+gcloud auth list
+
 # Check we have the correct project selected
 export PROJECT_ID=<enter your project ID>
 gcloud config set project $PROJECT_ID
 
 # Enable necessary APIs
 gcloud services enable cloudbuild.googleapis.com
+gcloud services enable storage-api.googleapis.com
 gcloud services enable artifactregistry.googleapis.com
 gcloud services enable eventarc.googleapis.com
 gcloud services enable run.googleapis.com
@@ -280,7 +284,69 @@ A sample VS Code launch configuration for the Flask app:
 }
 ```
 
+### Deploying the UI with Cloud Run
+
+#### Create a Google Artifact Registry Repo
+
 ```bash
-gcloud functions add-invoker-policy-binding extract-and-translate \
-  --member='serviceAccount:CALLING_FUNCTION_IDENTITY'
+gcloud artifacts repositories create image-text-translator-artifacts --repository-format=docker \
+    --location=$REGION \
+    --project=$PROJECT_ID
 ```
+
+#### Build the Container Image and Push to GAR
+
+```bash
+export IMAGE_NAME=$REGION-docker.pkg.dev/$PROJECT_ID/image-text-translator-artifacts/image-text-translator-ui
+
+# configure Docker to use the Google Cloud CLI to authenticate requests to Artifact Registry
+gcloud auth configure-docker $REGION-docker.pkg.dev
+
+# Build the image and push it to Artifact Registry
+gcloud builds submit --tag $IMAGE_NAME:v0.1 .
+```
+
+#### Deploy to Cloud Run
+
+```bash
+export RANDOM_SECRET_KEY=$(openssl rand -base64 32)
+
+gcloud run deploy image-text-translator-ui \
+  --image=$IMAGE_NAME:v0.1 \
+  --region=$REGION \
+  --platform=managed \
+  --allow-unauthenticated \
+  --max-instances=1 \
+  --service-account=$SVC_ACCOUNT \
+  --set-env-vars BACKEND_GCF=$BACKEND_GCF,FLASK_SECRET_KEY=$RANDOM_SECRET_KEY
+```
+
+### Mapping to a Domain
+
+First, create the domain with your domain registrar.
+
+```bash
+# Verify your domain ownership with Google
+gcloud domains verify mydomain.com
+gcloud domains list-user-verified
+
+# Create a mapping to your domain
+gcloud beta run domain-mappings create \
+  --region $REGION \
+  --service image-text-translator-ui \
+  --domain image-text-translator.mydomain.com
+
+# Obtain the DNS records. We want everything under `resourceRecords`.
+gcloud beta run domain-mappings describe \
+  --region $REGION \
+  --domain image-text-translator.mydomain.com
+
+# If we want to delete the domain
+gcloud beta run domain-mappings delete --domain image-text-translator.mydomain.com
+```
+
+Now add that record to your domain registrar. It can take a while for the registration to complete.  And it can take a long time for the Google-managed SSL certificate to become valid.
+
+- We can check the DNS records at https://toolbox.googleapps.com/apps/dig/
+- We can check SSL certificate with https://www.ssllabs.com/ssltest/
+

@@ -1,5 +1,5 @@
 export PROJECT_ID=$(gcloud config list --format='value(core.project)')
-export REGION=europe-west2
+export REGION=europe-west4
 export SVC_ACCOUNT=image-text-translator-sa
 export SVC_ACCOUNT_EMAIL=$SVC_ACCOUNT@$PROJECT_ID.iam.gserviceaccount.com
 
