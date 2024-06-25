@@ -16,7 +16,7 @@ from werkzeug.utils import secure_filename
 import google.oauth2.id_token
 from google.auth.transport.requests import Request as GoogleAuthRequest
 from google.cloud import translate_v2 as translate
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
 def create_app():
     """ Create and configure the app """
@@ -64,29 +64,36 @@ def entry():
             flash('No file selected for uploading.')
         elif not allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            flash(f'{secure_filename(filename)} is not a supported image format. Supported formats are: {ALLOWED_EXTENSIONS}')
+            flash(f'{secure_filename(filename)} is not a supported image format. '
+                  f'Supported formats are: {ALLOWED_EXTENSIONS}')
         else:
             filename = secure_filename(file.filename)
             app.logger.debug("Got %s", filename)
             app.logger.debug("Translating to %s", to_lang)
 
             # We don't need to save the image. We just want to binary encode it.
-            img = Image.open(file.stream)
-            with BytesIO() as buf:
-                img.save(buf, img.format.lower())
-                content_type = f"image/{img.format.lower()}"
-                image_bytes = buf.getvalue()
-            encoded_img = base64.b64encode(image_bytes).decode()
+            try:
+                img = Image.open(file.stream)
+                with BytesIO() as buf:
+                    if img_format := img.format: # e.g. JPEG, GIF, PNG
+                        img.save(buf, img_format.lower())
+                        content_type = f"image/{img_format.lower()}"
+                        image_bytes = buf.getvalue()
+                        encoded_img = base64.b64encode(image_bytes).decode()
+                    else:
+                        flash('Unable to determine image format.')
+            except UnidentifiedImageError:
+                # This will happen if we resubmit the form
+                flash('Unable to process image.')
 
-            message = f"Got {secure_filename(filename)}. Feel free to upload a new image."
-            func_response = make_authorized_post_request(endpoint=app.backend_func,
-                                                         image_data=image_bytes,
-                                                         to_lang=to_lang,
-                                                         filename=filename,
-                                                         content_type=content_type)
-            app.logger.debug("Function response code: %s", func_response.status_code)
-            app.logger.debug("Function response text: %s", func_response.text)
-            translation = func_response.text
+            if encoded_img:
+                message = f"Processed <{secure_filename(filename)}>. Feel free to upload a new image."
+                func_response = make_authorized_post_request(endpoint=app.backend_func,
+                                        image_data=image_bytes, to_lang=to_lang,
+                                        filename=filename, content_type=content_type)
+                app.logger.debug("Function response code: %s", func_response.status_code)
+                app.logger.debug("Function response text: %s", func_response.text)
+                translation = func_response.text
 
     return render_template('index.html',
                            languages=app.languages,
@@ -95,7 +102,9 @@ def entry():
                            img_data=encoded_img,
                            translation=translation), 200
 
-def make_authorized_post_request(endpoint:str, image_data, to_lang:str, filename:str, content_type:str):
+def make_authorized_post_request(endpoint:str,
+                                 image_data, to_lang:str,
+                                 filename:str, content_type:str):
     """
     Make a POST request to the specified HTTP endpoint by authenticating with the ID token
     obtained from the google-auth client library using the specified audience value.

@@ -3,12 +3,12 @@ body {
     font-family: 'Roboto', sans-serif;
     background-color: #f7f7f7;
     margin: 0; /* Changed margin to 0 */
-    padding-top: 40px; /* Added more padding at the top */
+    padding-top: 30px; /* Added more padding at the top */
 }
 
 .container {
     max-width: 600px;
-    margin: 50px auto;
+    margin: 30px auto;
     background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -25,7 +25,7 @@ h1 {
 
 h2 {
     color: #333;
-    font-size: 24px; /* Font size for h2 */
+    font-size: 22px; /* Font size for h2 */
     font-weight: 600; /* Make the subtitle bold */
     margin-bottom: 15px; /* Add some space below the subtitle */
 }
@@ -99,6 +99,29 @@ button.btn {
 button.btn:hover {
     background-color: #0056b3;
 }
+
+/* Drop area styles */
+#drop-area {
+    border: 2px dashed #007bff;
+    padding: 20px;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+#drop-area:hover {
+    background-color: #e3e4fd;
+}
+
+#drop-area p {
+    margin: 0;
+    font-size: 16px;
+    color: #555;
+}
+
+#drop-area.dragover {
+    background-color: #e3e4fd;
+    border-color: #007bff;
+}
+
 
 /* Image styles */
 #img-upload {

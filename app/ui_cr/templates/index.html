@@ -24,7 +24,15 @@
               {% endif %}
             {% endwith %}
         </div>
-
+        {% if translation %}
+        <div class="form-item" id="results">
+            <!-- Results will be displayed here after submission -->
+            <div id="translation">
+                <h3>Translation</h3>
+                <p>{{ translation }}</p>
+            </div>
+        </div>
+        {% endif %}
         <form method="post" enctype="multipart/form-data">
             <div class="form-item">
                 <label for="language">Choose language to translate to:</label>
@@ -34,29 +42,21 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="form-item">
-                <label for="image">Upload an image:</label>
+            <div class="form-item" id="drop-area">
+                <label for="image">Select (or paste/drag and drop) an image to translate:</label>
                 <input type="file" name="file" id="image">
+                <input type="hidden" name="img_data" id="img_data" value="{% if img_data %}data:image/jpeg;base64,{{ img_data }}{% endif %}">
             </div>
             <button type="submit" class="btn">Extract Text and Translate</button>
-        </form>
-
-        <div class="form-item" id="results">
-            <!-- Results will be displayed here after submission -->
-            <div id="translation">
-                {% if translation %}
-                    <h3>Translation</h3>
-                    <p>{{ translation }}</p>
-                {% endif %}
-            </div>
-
+            <br/>
             <div id="uploaded_image">
-                {% if img_data %}
-                <h3>Uploaded Image</h3>
-                <img src="data:image/jpeg;base64,{{ img_data }}" id="img-upload" alt="img_data" class="img-upload" width="480px" />
-                {% endif %}
+                <h3>Selected image</h3>
+                <img src="{% if img_data %}data:image/jpeg;base64,{{ img_data }}{% else %}#src-placeholder{% endif %}" id="img-upload" 
+                     alt="Selected image will be displayed here" class="img-upload" width="480px" style="display: {% if img_data %}block{% else %}none{% endif %};" />
             </div>
-        </div>
+        </form>
     </div>
+
+    <script src="/static/scripts.js"></script>
 </body>
 </html>
