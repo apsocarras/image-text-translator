@@ -350,15 +350,17 @@ Now add that record to your domain registrar. It can take a while for the regist
 - We can check the DNS records at https://toolbox.googleapps.com/apps/dig/
 - We can check SSL certificate with https://www.ssllabs.com/ssltest/
 
+## Performance
+
+We can give our Cloud Run service a startup CPU boost:
+
+```bash
+$ gcloud beta run services update image-text-translator-ui --cpu-boost
+```
+
 # To Do
 
 - Disable the button until language is changed or new image uploaded.
-- Cost management
-  - Free quotas?
-  - Limiting autoscaling of Cloud Run and Functions
-- Performance?
-  - Fast start-up?
-  - Min instances?
 - Footer text
 - Add an icon
 - Readme to point to Medium
