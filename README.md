@@ -361,7 +361,6 @@ gcloud beta run services update image-text-translator-ui --cpu-boost \
 
 # To Do
 
-- Add an icon
 - Readme to point to Medium
 - Captcha?
 - CI/CD
