@@ -353,6 +353,12 @@ Now add that record to your domain registrar. It can take a while for the regist
 # To Do
 
 - Disable the button until language is changed or new image uploaded.
+- Cost management
+  - Free quotas?
+  - Limiting autoscaling of Cloud Run and Functions
+- Performance?
+  - Fast start-up?
+  - Min instances?
 - Footer text
 - Add an icon
 - Readme to point to Medium
