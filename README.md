@@ -347,7 +347,7 @@ gcloud beta run domain-mappings delete --domain image-text-translator.mydomain.c
 
 Now add that record to your domain registrar. It can take a while for the registration to complete.  And it can take a long time for the Google-managed SSL certificate to become valid.
 
-- We can check the DNS records at https://toolbox.googleapps.com/apps/dig/
+- We can check the DNS records at https://toolbox.googleapps.com/apps/dig/ and with https://dnspropagation.net/
 - We can check SSL certificate with https://www.ssllabs.com/ssltest/
 
 ## Performance
@@ -355,7 +355,8 @@ Now add that record to your domain registrar. It can take a while for the regist
 We can give our Cloud Run service a startup CPU boost:
 
 ```bash
-$ gcloud beta run services update image-text-translator-ui --cpu-boost
+gcloud beta run services update image-text-translator-ui --cpu-boost \
+  --region $REGION
 ```
 
 # To Do

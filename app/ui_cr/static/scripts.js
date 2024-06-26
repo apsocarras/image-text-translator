@@ -9,6 +9,9 @@ document.getElementById('image').addEventListener('change', function(event) {
 
             // Update hidden input with base64 image data
             document.getElementById('img_data').value = e.target.result;
+
+            // Enable the button if image is selected
+            toggleButtonState();
         };
         reader.readAsDataURL(file);
     }
@@ -28,6 +31,9 @@ document.addEventListener('paste', function(event) {
 
                 // Update hidden input with base64 image data
                 document.getElementById('img_data').value = e.target.result;
+
+                // Enable the button if image is selected
+                toggleButtonState();
 
                 // Create a new FileList and set it to the file input
                 const dataTransfer = new DataTransfer();
@@ -60,4 +66,22 @@ document.getElementById('to_lang').addEventListener('change', function() {
         dataTransfer.items.add(file);
         document.getElementById('image').files = dataTransfer.files;
     }
+
+    // Enable the button if language is changed
+    toggleButtonState();
 });
+
+function toggleButtonState() {
+    const imgData = document.getElementById('img_data').value;
+    const currentLang = document.getElementById('to_lang').value;
+    const initialLang = "{{ to_lang }}"; // Assuming this is the initial selected language
+
+    if (imgData && imgData !== '#src-placeholder' && currentLang !== initialLang) {
+        document.getElementById('translate-button').disabled = false;
+    } else {
+        document.getElementById('translate-button').disabled = true;
+    }
+}
+
+// Initial button state check
+toggleButtonState();

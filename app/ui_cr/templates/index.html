@@ -47,7 +47,7 @@
                 <input type="file" name="file" id="image">
                 <input type="hidden" name="img_data" id="img_data" value="{% if img_data %}data:image/jpeg;base64,{{ img_data }}{% endif %}">
             </div>
-            <button type="submit" class="btn">Extract Text and Translate</button>
+            <button type="submit" class="btn" id="translate-button" disabled>Extract Text and Translate</button>
             <br/>
             <div id="uploaded_image">
                 <h3>Selected image</h3>
