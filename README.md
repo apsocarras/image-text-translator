@@ -361,8 +361,6 @@ gcloud beta run services update image-text-translator-ui --cpu-boost \
 
 # To Do
 
-- Disable the button until language is changed or new image uploaded.
-- Footer text
 - Add an icon
 - Readme to point to Medium
 - Captcha?
