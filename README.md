@@ -350,3 +350,12 @@ Now add that record to your domain registrar. It can take a while for the regist
 - We can check the DNS records at https://toolbox.googleapps.com/apps/dig/
 - We can check SSL certificate with https://www.ssllabs.com/ssltest/
 
+# To Do
+
+- Disable the button until language is changed or new image uploaded.
+- Footer text
+- Add an icon
+- Readme to point to Medium
+- Captcha?
+- CI/CD
+- IaC

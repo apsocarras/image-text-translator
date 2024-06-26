@@ -1,3 +1,5 @@
+#!/bin/bash
+
 export PROJECT_ID=$(gcloud config list --format='value(core.project)')
 export REGION=europe-west4
 export SVC_ACCOUNT=image-text-translator-sa
@@ -17,6 +19,7 @@ export FLASK_RUN_PORT=8080
 echo "Environment variables configured:"
 echo PROJECT_ID="$PROJECT_ID"
 echo REGION="$REGION"
+echo SVC_ACCOUNT="$SVC_ACCOUNT"
 echo SVC_ACCOUNT_EMAIL="$SVC_ACCOUNT_EMAIL"
 echo BACKEND_GCF="$BACKEND_GCF"
 echo FUNCTIONS_PORT="$FUNCTIONS_PORT"
