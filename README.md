@@ -361,7 +361,14 @@ gcloud beta run services update image-text-translator-ui --cpu-boost \
 
 # To Do
 
+- Medium link in the footer
 - Readme to point to Medium
+- Use gunicorn? Procfile?
+
+```
+web: gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 main:app
+```
+
 - Captcha?
 - CI/CD
 - IaC

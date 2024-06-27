@@ -80,7 +80,7 @@ def extract_and_translate(request):
     if detected:
         translated = translate_text(detected, to_lang)
         if translated["text"] != "":
-            print(translated)
+            # print(translated)
             return translated["text"]
 
     return "No text found in the image."
@@ -94,7 +94,7 @@ def detect_text(image: vision.Image) -> dict | None:
         text = annotations[0].description
     else:
         text = ""
-    print(f"Extracted text from image:\n{text}")
+    # print(f"Extracted text from image:\n{text}")
 
     # Returns language identifer in ISO 639-1 format. E.g. en.
     # See https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes
