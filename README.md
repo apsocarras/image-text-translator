@@ -1,5 +1,6 @@
 # Image Text Extract and Translation
 
+![Image-Text-Translator Application](docs/image-text-translator-amalgam.jpg)
 ## Overview
 
 An application that allows a user to upload an image containing text. The text will be extracted, and translated as required. The translated text is returned.
