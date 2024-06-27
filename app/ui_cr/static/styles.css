@@ -189,6 +189,29 @@ footer {
     color: #909090;
 }
 
+.footer-content .left,
+.footer-content .middle,
+.footer-content .right {
+    flex: 1;
+}
+
+.footer-content .left {
+    text-align: left;
+}
+
+.footer-content .left {
+    text-align: left;
+}
+
+.footer-content .middle {
+    text-align: center;
+}
+
+.footer-content .right {
+    text-align: right;
+}
+
+/* 
 .footer-content .left {
     text-align: left;
     flex: 1;
@@ -197,7 +220,7 @@ footer {
 .footer-content .right {
     text-align: right;
     flex: 1;
-}
+} */
 
 .footer-content p {
     margin: 0;
