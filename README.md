@@ -3,19 +3,16 @@
 ![Image-Text-Translator Application](docs/image-text-translator-amalgam.jpg)
 ## Overview
 
-An application that allows a user to upload an image containing text. The text will be extracted, and translated as required. The translated text is returned.
+An application that allows a user to upload an image containing text. The text will be extracted, and translated to any selected language.
 
-This will make use of Google Cloud serverless components, and Google ML APIs.
+E.g. A user wants to translate a meme in Ukrainian, to English.
 
-### How It Works
+It is built using:
 
-1. A user uploads or pastes an image.
-1. The image is processed, using Google Vision API. Any text is extracted.
-1. The text is translated (if necessary) using Google Cloud Translation API.
-
-### Example Use Case
-
-- A user wants to translate a meme in Ukrainian, to English.
+- Python Flask for the UI
+- Event driven functions for the backend
+- Google Cloud serverless components for hosting: i.e. Cloud Run and Cloud Functions
+- Google pre-built ML APIs for the extraction and translation
 
 ## Repo Structure
 
@@ -48,328 +45,26 @@ This will make use of Google Cloud serverless components, and Google ML APIs.
     └── README.md                 - Repo README
 ```
 
-## Architecture
-
-![Architecture](docs/image-text-translator.png)
-
-- UI:
-  - Python Flask application, containerised.
-  - Hosted in Cloud Run.
-- Backend:
-  - A Google Cloud Function, in Python.
-
-## Setup
-
-### Project Setup
-
-- Create a Google Cloud project to host the application.
-- Enable the necessary APIs.
-
-```bash
-# Authenticate to Google Cloud
-gcloud auth list
-
-# Check we have the correct project selected
-export PROJECT_ID=<enter your project ID>
-gcloud config set project $PROJECT_ID
-
-# Enable necessary APIs
-gcloud services enable cloudbuild.googleapis.com
-gcloud services enable storage-api.googleapis.com
-gcloud services enable artifactregistry.googleapis.com
-gcloud services enable eventarc.googleapis.com
-gcloud services enable run.googleapis.com
-gcloud services enable logging.googleapis.com
-gcloud services enable pubsub.googleapis.com
-gcloud services enable cloudfunctions.googleapis.com
-gcloud services enable translate.googleapis.com
-gcloud services enable vision.googleapis.com
-gcloud services enable iamcredentials.googleapis.com
-```
-
-- Setup service account and assign roles:
-
-```bash
-export SVC_ACCT=image-text-translator-sa
-export SVC_ACCOUNT_EMAIL=$SVC_ACCT@$PROJECT_ID.iam.gserviceaccount.com
-
-# Attaching a user-managed service account is the preferred way to provide credentials to ADC for production code running on Google Cloud.
-gcloud iam service-accounts create $SVC_ACCT
-
-# Grant roles to the service account
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:$SVC_ACCOUNT_EMAIL" \
-  --role=roles/run.admin
-
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:$SVC_ACCOUNT_EMAIL" \
-  --role=roles/run.invoker
-
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:$SVC_ACCOUNT_EMAIL" \
-  --role=roles/cloudfunctions.admin
-
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:$SVC_ACCOUNT_EMAIL" \
-  --role=roles/cloudfunctions.invoker
-
-# Grant the required role to the principal that will attach the service account to other resources.
-gcloud iam service-accounts add-iam-policy-binding $SVC_ACCOUNT_EMAIL \
-  --member="group:gcp-devops@my-org.com" \
-  --role=roles/iam.serviceAccountUser
-
-# Allow service account impersonation
-gcloud iam service-accounts add-iam-policy-binding $SVC_ACCOUNT_EMAIL \
-  --member="group:gcp-devops@my-org.com" \
-  --role=roles/iam.serviceAccountTokenCreator
-
-# Create a service account key for local dev
-gcloud iam service-accounts keys create ~/.config/gcloud/$SVC_ACCOUNT.json \
-  --iam-account=$SVC_ACCOUNT_EMAIL
-```
-
-### Local Dev One Time Setup
-
-```bash
-# Cloud CLI installed in local Linux environment.
-# See https://cloud.google.com/sdk/docs/install
-
-# Install Google Cloud CLI packages for local dev
-sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin kubectl google-cloud-cli-skaffold google-cloud-cli-minikube
-
-# Setup Python in Gcloud CLI
-# See https://cloud.google.com/python/docs/setup
-# Create and activate a Python virtual environment
-
-# Install the Python dependencies
-python3 -m pip install -r requirements.txt
-```
-
-## Run with Every New Terminal Session
-
-```bash
-# From the image-text-translator directory
-source ./scripts/setup.sh
-```
-
-## Function Backend
-
-### Invoking
-
-Two ways to call the function:
-
-1. POST the image. E.g. 
-   ```bash
-   curl -X POST localhost:$FUNCTIONS_PORT -H "Content-Type: multipart/form-data" \
-   -F "uploaded=@/home/path/to/meme.jpg" \
-   -F "to_lang=en"
-   ```
-1. Reference a bucket and filename. E.g.
-   ```bash
-   curl -X GET localhost:$FUNCTIONS_PORT -H "Content-Type: application/json" \
-     -d '{"bucket":"Bob", "filename":"meme.jpg", "to_lang":"en}'
-   ```
-
-### Function Local Dev
-
-```bash
-# Run the function
-cd app/backend_gcf
-functions-framework --target extract_and_translate --debug --port $FUNCTIONS_PORT
-```
-
-### Testing
-
-Run from another console:
-
-```bash
-gcloud auth application-default login  # Set default credentials 
-source ./scripts/setup.sh # We need our env vars to be set in this console session
-
-# Test the function
-curl -X POST localhost:$FUNCTIONS_PORT -H "Content-Type: multipart/form-data" \
-   -F "uploaded=@./testing/images/ua_meme.jpg"
-```
-
-### Deploying the Function with Gcloud
-
-```bash
-gcloud functions deploy extract-and-translate \
-  --gen2 --max-instances 1 \
-  --region europe-west2 \
-  --runtime=python312 --source=. \
-  --trigger-http --entry-point=extract_and_translate \
-  --no-allow-unauthenticated
-
-# Allow this function to be called by the service account
-gcloud functions add-invoker-policy-binding extract-and-translate \
-  --region=$REGION \
-  --member="serviceAccount:$SVC_ACCOUNT_EMAIL"
-```
-
-The function is created with endpoint URL:
-
-`https://<region>-<project-id>.cloudfunctions.net/extract-and-translate`
-
-### Test Function in GCP
-
-Syntax:
-
-```bash
-curl -X POST https://<region>-<project-id>.cloudfunctions.net/extract-and-translate \
-     -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
-     -H "Content-Type: multipart/form-data" \
-     -F "uploaded=@$HOME/path/to/meme.jpg" \
-     -F "to_lang=en"
-```
-
-Sample:
-
-```bash
-./scripts/setup.sh
-
-curl -X POST $BACKEND_GCF \
-    -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
-    -H "Content-Type: multipart/form-data" \
-    -F "uploaded=@./testing/images/ua_meme.jpg" \
-    -F "to_lang=en"
-```
-
-## UI with Cloud Run
-
-### Local Dev
-
-To launch the Flask app:
-
-```bash
-cd app/ui_cr/
-source ../../scripts/setup.sh  # Initialise vars if we're in a new terminal
-
-# Run the Flask App
-python app.py
-
-# Or with the Flask command.
-# This will automatically load any environment vars starting FLASK_
-# The --debug tells Flask to automatically reload after any changes
-# and to set the app.logger to debug.
-python -m flask --app app run --debug
-```
-
-A sample VS Code launch configuration for the Flask app:
-
-```json
-{
-    "configurations": [
-        {
-            "name": "Python Debugger: Flask",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "flask",
-            "cwd": "${workspaceFolder}/app/ui_cr",
-            "env": {
-                "FLASK_APP": "app.py",
-                "FLASK_DEBUG": "1",
-                "FLASK_RUN_PORT": "8080"
-            },
-            "args": [
-                "run",
-                "--debug",
-                "--no-debugger",
-                "--no-reload"
-            ],
-            "jinja": true,
-            "autoStartBrowser": false
-        },
-        // Other configurations
-    ]
-}
-```
-
-### Deploying the UI with Cloud Run
-
-#### Create a Google Artifact Registry Repo
-
-```bash
-gcloud artifacts repositories create image-text-translator-artifacts --repository-format=docker \
-    --location=$REGION \
-    --project=$PROJECT_ID
-```
-
-#### Build the Container Image and Push to GAR
-
-```bash
-export IMAGE_NAME=$REGION-docker.pkg.dev/$PROJECT_ID/image-text-translator-artifacts/image-text-translator-ui
-
-# configure Docker to use the Google Cloud CLI to authenticate requests to Artifact Registry
-gcloud auth configure-docker $REGION-docker.pkg.dev
-
-# Build the image and push it to Artifact Registry
-gcloud builds submit --tag $IMAGE_NAME:v0.1 .
-```
-
-#### Deploy to Cloud Run
-
-```bash
-export RANDOM_SECRET_KEY=$(openssl rand -base64 32)
-
-gcloud run deploy image-text-translator-ui \
-  --image=$IMAGE_NAME:v0.1 \
-  --region=$REGION \
-  --platform=managed \
-  --allow-unauthenticated \
-  --max-instances=1 \
-  --service-account=$SVC_ACCOUNT \
-  --set-env-vars BACKEND_GCF=$BACKEND_GCF,FLASK_SECRET_KEY=$RANDOM_SECRET_KEY
-```
-
-### Mapping to a Domain
-
-First, create the domain with your domain registrar.
-
-```bash
-# Verify your domain ownership with Google
-gcloud domains verify mydomain.com
-gcloud domains list-user-verified
-
-# Create a mapping to your domain
-gcloud beta run domain-mappings create \
-  --region $REGION \
-  --service image-text-translator-ui \
-  --domain image-text-translator.mydomain.com
-
-# Obtain the DNS records. We want everything under `resourceRecords`.
-gcloud beta run domain-mappings describe \
-  --region $REGION \
-  --domain image-text-translator.mydomain.com
-
-# If we want to delete the domain
-gcloud beta run domain-mappings delete --domain image-text-translator.mydomain.com
-```
-
-Now add that record to your domain registrar. It can take a while for the registration to complete.  And it can take a long time for the Google-managed SSL certificate to become valid.
-
-- We can check the DNS records at https://toolbox.googleapps.com/apps/dig/ and with https://dnspropagation.net/
-- We can check SSL certificate with https://www.ssllabs.com/ssltest/
-
-## Performance
-
-We can give our Cloud Run service a startup CPU boost:
-
-```bash
-gcloud beta run services update image-text-translator-ui --cpu-boost \
-  --region $REGION
-```
-
-# To Do
-
-- Medium link in the footer
-- Readme to point to Medium
-- Use gunicorn? Procfile?
-
-```
-web: gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 main:app
-```
-
-- Captcha?
+## Walkthrough and Detailed Guide
+
+Check out my [Medium blog](https://medium.com/google-cloud/building-a-serverless-image-text-extractor-and-translator-using-google-cloud-pre-trained-ai-adfdccdb18d9), where I describe:
+
+- How the solution is architected
+- Design choices and rationale
+- A walkthrough of how you can do the same, end-to-end, including:
+  - Dev environment setup (including Google Cloud SDK, VS Code, Cloud Code)
+  - Service accounts and roles
+  - Application Default Credentials (ADC)
+  - The coding for the UI (Python, Flask, Jinja templates) and backend (Python)
+  - How to test locally
+  - How to deploy to Google Cloud (using Google Artifact Registry and Cloud Build)
+- Cost management tips
+- Performance tips
+
+## Todo
+
+Some improvements I'll make soon...
+
+- Captcha
 - CI/CD
 - IaC
