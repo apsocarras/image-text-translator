@@ -26,13 +26,13 @@ jobs:
     env:
        PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
        SVC_ACCOUNT: ${{ secrets.GCP_SVC_ACCOUNT }}
-       SVC_ACCOUNT_CREDS_FILE: ${{ github.workspace }}/${{ secrets.GCP_SVC_ACCOUNT }}.json
+       GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/${{ secrets.GCP_SVC_ACCOUNT }}.json
        SVC_ACCOUNT_EMAIL: ${{ secrets.GCP_SVC_ACCOUNT }}@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com
        REGION: ${{ vars.GCP_REGION }} 
        FUNCTIONS_PORT: ${{ vars.GCP_DEV_FUNCTIONS_PORT}}
        FLASK_RUN_PORT: ${{ vars.FLASK_RUN_PORT }}
        BACKEND_GCF: https://${{ vars.GCP_REGION }}-${{ secrets.GCP_PROJECT_ID }}.${{ vars.GCP_FUNCTION_URI_SUFFIX }}
-          
+
     steps:
     - uses: actions/checkout@v4
 
@@ -43,7 +43,7 @@ jobs:
         echo REGION="$REGION"
         echo SVC_ACCOUNT="$SVC_ACCOUNT"
         echo SVC_ACCOUNT_EMAIL="$SVC_ACCOUNT_EMAIL"
-        echo SVC_ACCOUNT_CREDS_FILE="$SVC_ACCOUNT_CREDS_FILE"
+        echo GOOGLE_APPLICATION_CREDENTIALS="$GOOGLE_APPLICATION_CREDENTIALS"
         echo BACKEND_GCF="$BACKEND_GCF"
         echo FUNCTIONS_PORT="$FUNCTIONS_PORT"
         echo FLASK_RUN_PORT="$FLASK_RUN_PORT"    
@@ -51,9 +51,9 @@ jobs:
     # Creates a credentials file that will be used for ADC later
     - name: Create credentials file
       run: |
-        echo "${{ secrets.GCP_SVC_ACCOUNT_CREDS }}" > $SVC_ACCOUNT_CREDS_FILE
+        echo "${{ secrets.GCP_SVC_ACCOUNT_CREDS }}" > $GOOGLE_APPLICATION_CREDENTIALS
         echo "Checking the credentials:"
-        head -n 5 $SVC_ACCOUNT_CREDS_FILE
+        head -n 3 $SVC_ACCOUNT_CREDS_FILE
       shell: bash
 
     # Cache Python dependencies to speed up subsequent runs
