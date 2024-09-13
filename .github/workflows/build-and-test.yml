@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # Use the matrix strategy to run build and test steps for both backend_gcf and ui_cr
+    # This allows us to re-use this job and run it for each application folder
     strategy:
       matrix:
         app-folder:
