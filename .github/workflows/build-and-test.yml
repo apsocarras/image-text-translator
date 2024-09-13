@@ -9,6 +9,8 @@ on:
     paths:
       - 'app/**' # Only run if our push contains a file in the app folder
 
+  workflow_dispatch:  # Allows manual triggering of the workflow
+
 permissions:
   contents: read
 
