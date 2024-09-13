@@ -27,7 +27,7 @@ jobs:
        PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
        SVC_ACCOUNT: ${{ secrets.GCP_SVC_ACCOUNT }}
        SVC_ACCOUNT_CREDS_FILE: ${{ github.workspace }}/${{ secrets.GCP_SVC_ACCOUNT }}.json
-       SVC_ACCOUNT_EMAIL: ${{ secrets.GCP_SVC_ACCOUNT }}@$PROJECT_ID.iam.gserviceaccount.com
+       SVC_ACCOUNT_EMAIL: ${{ secrets.GCP_SVC_ACCOUNT }}@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com
        REGION: ${{ vars.GCP_REGION }} 
        FUNCTIONS_PORT: ${{ vars.GCP_DEV_FUNCTIONS_PORT}}
        FLASK_RUN_PORT: ${{ vars.FLASK_RUN_PORT }}
@@ -51,7 +51,7 @@ jobs:
     # Creates a credentials file that will be used for ADC later
     - name: Create credentials file
       run: |
-        echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}" > $SVC_ACCOUNT_CREDS_FILE
+        echo "${{ secrets.GCP_SVC_ACCOUNT_CREDS }}" > $SVC_ACCOUNT_CREDS_FILE
         echo "Checking the credentials:"
         head -n 5 $SVC_ACCOUNT_CREDS_FILE
       shell: bash
