@@ -53,7 +53,7 @@ jobs:
     # Creates a credentials file that will be used for ADC later
     - name: Create credentials file
       run: |
-        echo "${{ secrets.GCP_SVC_ACCOUNT_CREDS }}" > $GOOGLE_APPLICATION_CREDENTIALS
+        echo "${{ secrets.GCP_SVC_ACCOUNT_CREDS }}" | base64 --decode > $GOOGLE_APPLICATION_CREDENTIALS
         echo "Checking the credentials:"
         head -n 3 $GOOGLE_APPLICATION_CREDENTIALS
       shell: bash
