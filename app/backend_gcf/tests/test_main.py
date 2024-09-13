@@ -52,6 +52,7 @@ class TestImageTextTranslator(unittest.TestCase):
         self.assertEqual(detected_text["text"], "")
 
     def test_translate_text(self):
+        """ Mock the response from the Translate API """
         message = {"text": "Hola mundo", "src_lang": "es"}
         to_lang = "en"
         expected_translated_text = {"text": "Hello world", "src_lang": "es", "to_lang": "en"}
