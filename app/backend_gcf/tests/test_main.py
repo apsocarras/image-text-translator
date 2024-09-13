@@ -42,7 +42,7 @@ class TestImageTextTranslator(unittest.TestCase):
         self.assertEqual(detected_text["text"], test_text)
 
     def test_detect_text_without_text(self):
-        # Mock the response from the Vision API for no text detected
+        """ Mock the response from the Vision API for no text detected """
         vision.ImageAnnotatorClient.text_detection = MagicMock(return_value=MagicMock(text_annotations=[]))
         translate.Client.detect_language = MagicMock(return_value={"language": "und"})
 
