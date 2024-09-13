@@ -94,4 +94,4 @@ jobs:
     - name: Test with pytest
       working-directory: ${{ matrix.app-folder }}    
       run: |
-        pytest
+        pytest || if [ $? -eq 5 ]; then echo "No tests were found, but continuing..."; else exit 1; fi
