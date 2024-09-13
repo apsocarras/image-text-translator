@@ -53,7 +53,7 @@ jobs:
       run: |
         echo "${{ secrets.GCP_SVC_ACCOUNT_CREDS }}" > $GOOGLE_APPLICATION_CREDENTIALS
         echo "Checking the credentials:"
-        head -n 3 $SVC_ACCOUNT_CREDS_FILE
+        head -n 3 $GOOGLE_APPLICATION_CREDENTIALS
       shell: bash
 
     # Cache Python dependencies to speed up subsequent runs
