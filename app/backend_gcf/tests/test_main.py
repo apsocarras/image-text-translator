@@ -1,5 +1,4 @@
 import unittest
-import io
 from unittest.mock import MagicMock
 from ..main import extract_and_translate, detect_text, translate_text
 from google.cloud import vision
@@ -32,7 +31,7 @@ class TestImageTextTranslator(unittest.TestCase):
     #     self.assertEqual(response, expected_translated_text["text"])
 
     def test_detect_text_with_text(self):
-        # Mock the response from the Vision API
+        """ Mock the response from the Vision API """
         test_text = "Sample text"
         vision.ImageAnnotatorClient.text_detection = MagicMock(return_value=MagicMock(text_annotations=[MagicMock(description=test_text)]))
         translate.Client.detect_language = MagicMock(return_value={"language": "en"})
