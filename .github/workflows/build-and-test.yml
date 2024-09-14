@@ -1,15 +1,14 @@
 # This workflow builds and tests our Python application.
 name: Build and Test
-
+run-name: ${{ github.actor }} has launched the Build-and-Test workflow 🚀
 on:
   push:
-    branches: 
-      - 'master'
-      # - "*" If we want all branches
+    branches-ignore: 
+      - 'master' # Run on all branches except master
     paths:
       - 'app/**' # Only run if our push contains a file in the app folder
 
-  workflow_dispatch:  # Allows manual triggering of the workflow
+  workflow_dispatch:  # Allows manual triggering of the workflow. Only works with default branch.
 
 permissions:
   contents: read
