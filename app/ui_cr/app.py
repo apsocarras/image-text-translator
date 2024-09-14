@@ -94,7 +94,10 @@ def entry():
                 app.logger.debug("Function response code: %s", func_response.status_code)
                 app.logger.debug("Function response text: %s", func_response.text)
                 translation = func_response.text
+            else:
+                app.logger.error("Image encoding failed.")                
 
+    app.logger.debug(f"Final translation: {translation}")
     return render_template('index.html',
                            languages=app.languages,
                            message=message,
