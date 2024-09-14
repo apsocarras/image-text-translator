@@ -1,6 +1,6 @@
 # This workflow builds and tests our Python application.
 name: Build and Test
-run-name: ${{ github.actor }} has launched the Build-and-Test workflow 🚀
+run-name: ${{ github.actor }} launched the Build-and-Test workflow 🚀
 on:
   push:
     branches-ignore: 
