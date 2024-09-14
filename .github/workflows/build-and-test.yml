@@ -8,10 +8,20 @@ on:
     paths:
       - 'app/**' # Only run if our push contains a file in the app folder
 
-  workflow_dispatch:  # Allows manual triggering of the workflow. Only works with default branch.
+  workflow_dispatch:  # Allows manual triggering of the workflow.
 
 permissions:
   contents: read
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  SVC_ACCOUNT: ${{ secrets.GCP_SVC_ACCOUNT }}
+  GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/${{ secrets.GCP_SVC_ACCOUNT }}.json
+  SVC_ACCOUNT_EMAIL: ${{ secrets.GCP_SVC_ACCOUNT }}@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+  REGION: ${{ vars.GCP_REGION }} 
+  FUNCTIONS_PORT: ${{ vars.GCP_DEV_FUNCTIONS_PORT}}
+  FLASK_RUN_PORT: ${{ vars.FLASK_RUN_PORT }}
+  BACKEND_GCF: https://${{ vars.GCP_REGION }}-${{ secrets.GCP_PROJECT_ID }}.${{ vars.GCP_FUNCTION_URI_SUFFIX }}
 
 jobs: 
   build-and-test:
@@ -24,16 +34,6 @@ jobs:
         app-folder:
           - app/backend_gcf
           - app/ui_cr
-
-    env:
-       PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-       SVC_ACCOUNT: ${{ secrets.GCP_SVC_ACCOUNT }}
-       GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/${{ secrets.GCP_SVC_ACCOUNT }}.json
-       SVC_ACCOUNT_EMAIL: ${{ secrets.GCP_SVC_ACCOUNT }}@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com
-       REGION: ${{ vars.GCP_REGION }} 
-       FUNCTIONS_PORT: ${{ vars.GCP_DEV_FUNCTIONS_PORT}}
-       FLASK_RUN_PORT: ${{ vars.FLASK_RUN_PORT }}
-       BACKEND_GCF: https://${{ vars.GCP_REGION }}-${{ secrets.GCP_PROJECT_ID }}.${{ vars.GCP_FUNCTION_URI_SUFFIX }}
 
     steps:
     - uses: actions/checkout@v4
