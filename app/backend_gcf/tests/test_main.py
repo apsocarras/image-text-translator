@@ -33,7 +33,7 @@ def test_extract_and_translate_with_posted_image(mock_translate_client, mock_vis
         mock_translate_client.detect_language.return_value = {"language": "uk"}
         mock_translate_client.translate.return_value = {"translatedText": "Put a glass of rice and three glasses of water in a saucepan"}
 
-        # Call the function
+        # Call the function - the request object is the one simulated in test_request_context
         response = extract_and_translate(request)
 
         # Check the result
