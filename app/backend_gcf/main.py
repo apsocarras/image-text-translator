@@ -85,7 +85,7 @@ def extract_and_translate(request):
 
     return "No text found in the image."
 
-def detect_text(image: vision.Image) -> dict | None:
+def detect_text(image: vision.Image) -> dict:
     """Extract the text from the Image object """
     text_detection_response = vision_client.text_detection(image=image)
     annotations = text_detection_response.text_annotations
@@ -94,7 +94,6 @@ def detect_text(image: vision.Image) -> dict | None:
         text = annotations[0].description
     else:
         text = ""
-    # print(f"Extracted text from image:\n{text}")
 
     # Returns language identifer in ISO 639-1 format. E.g. en.
     # See https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes
@@ -112,8 +111,7 @@ def detect_text(image: vision.Image) -> dict | None:
 def translate_text(message: dict, to_lang: str) -> dict:
     """
     Translates the text in the message from the specified source language
-    to the requested target language, then sends a message requesting another
-    service save the result.
+    to the requested target language.
     """
 
     text = message["text"]
