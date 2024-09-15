@@ -3,11 +3,15 @@ name: Build and Test
 run-name: ${{ github.actor }} launched the Build-and-Test workflow 🚀
 on:
   push:
-    branches-ignore: 
-      - 'master' # Run on all branches except master
     paths:
       - 'app/**' # Only run if our push contains a file in the app folder
 
+  pull_request:
+    branches:
+      - 'master' # This ensures the workflow also runs when merging
+    paths:
+      - 'app/**' # Only run if our push contains a file in the app folder
+  
   workflow_dispatch:  # Allows manual triggering of the workflow.
 
 permissions:

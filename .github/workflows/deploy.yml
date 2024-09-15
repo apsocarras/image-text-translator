@@ -1,0 +1,100 @@
+name: Deploy to GCF and Cloud Run
+run-name: ${{ github.actor }} launched the Deploy workflow 🚀
+on:
+  workflow_run:
+    workflows: ["Build and Test"] # Run the deploy after successful Build and Test
+    types:
+      - completed     
+
+  workflow_dispatch:  # Allows manual triggering of the workflow.      
+
+permissions:
+  contents: read
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  SVC_ACCOUNT: ${{ secrets.GCP_SVC_ACCOUNT }}
+  GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/${{ secrets.GCP_SVC_ACCOUNT }}.json
+  SVC_ACCOUNT_EMAIL: ${{ secrets.GCP_SVC_ACCOUNT }}@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+  REGION: ${{ vars.GCP_REGION }}
+  BACKEND_GCF: https://${{ vars.GCP_REGION }}-${{ secrets.GCP_PROJECT_ID }}.${{ vars.GCP_FUNCTION_URI_SUFFIX }}
+  CR_UI_IMAGE_NAME: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/image-text-translator-artifacts/image-text-translator-ui
+  
+jobs:
+  deploy_backend_gcf: # Only deploy if build_and_test was successful on master
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/master' }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Check env vars
+      run: |
+        echo "Environment variables configured:"
+        echo PROJECT_ID="$PROJECT_ID"
+        echo REGION="$REGION"
+        echo SVC_ACCOUNT="$SVC_ACCOUNT"
+        echo SVC_ACCOUNT_EMAIL="$SVC_ACCOUNT_EMAIL"
+        echo BACKEND_GCF="$BACKEND_GCF"        
+
+    # Authenticate with Google Cloud
+    - name: Authenticate to Google Cloud
+      run: |
+        echo "${{ secrets.GCP_SVC_ACCOUNT_CREDS }}" | base64 --decode > $GOOGLE_APPLICATION_CREDENTIALS
+        gcloud auth activate-service-account $SVC_ACCOUNT_EMAIL --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+        gcloud config set project $PROJECT_ID
+        gcloud config set functions/region $REGION
+
+    # Deploy backend_gcf to Google Cloud Functions
+    - name: Deploy to Google Cloud Functions
+      working-directory: app/backend_gcf
+      run: |
+        gcloud functions deploy extract-and-translate \
+          --gen2 \
+          --max-instances 1 \
+          --region $REGION \
+          --runtime=python312 \
+          --source=. \
+          --trigger-http \
+          --entry-point=extract_and_translate \
+          --no-allow-unauthenticated \
+          --service-account=$SVC_ACCOUNT_EMAIL
+
+        # Allow this function to be called by the service account
+        gcloud functions add-invoker-policy-binding extract-and-translate \
+          --region=$REGION \
+          --member="serviceAccount:$SVC_ACCOUNT_EMAIL"
+
+  deploy_ui_cr:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/master' }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # Authenticate with Google Cloud
+    - name: Authenticate to Google Cloud
+      run: |
+        echo "${{ secrets.GCP_SVC_ACCOUNT_CREDS }}" | base64 --decode > $GOOGLE_APPLICATION_CREDENTIALS
+        gcloud auth activate-service-account $SVC_ACCOUNT_EMAIL --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+        gcloud config set project $PROJECT_ID
+        gcloud config set run/region $REGION
+
+    # Build and deploy the ui_cr container to Cloud Run
+    - name: Build Docker image
+      working-directory: app/ui_cr
+      run: |
+        gcloud auth configure-docker $REGION-docker.pkg.dev
+        gcloud builds submit --tag $CR_UI_IMAGE_NAME
+
+    - name: Deploy to Cloud Run
+      run: |
+        export RANDOM_SECRET_KEY=$(openssl rand -base64 32)
+        gcloud run deploy image-text-translator-ui \
+          --image=$CR_UI_IMAGE_NAME \
+          --region=$REGION \
+          --platform=managed \
+          --allow-unauthenticated \
+          --max-instances=1 \
+          --service-account=$SVC_ACCOUNT_EMAIL \
+          --set-env-vars BACKEND_GCF=$BACKEND_GCF,FLASK_SECRET_KEY=$RANDOM_SECRET_KEY
