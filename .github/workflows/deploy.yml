@@ -19,6 +19,7 @@ env:
   REGION: ${{ vars.GCP_REGION }}
   BACKEND_GCF: https://${{ vars.GCP_REGION }}-${{ secrets.GCP_PROJECT_ID }}.${{ vars.GCP_FUNCTION_URI_SUFFIX }}
   CR_UI_IMAGE_NAME: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/image-text-translator-artifacts/image-text-translator-ui:${{ github.sha }}
+  BUILD_LOGS_BUCKET: gs://${{ secrets.GCP_PROJECT_ID }}-gcloud-logs
   
 jobs:
   deploy_backend_gcf: # Only deploy if build_and_test was successful on master
@@ -35,7 +36,7 @@ jobs:
         echo REGION="$REGION"
         echo SVC_ACCOUNT="$SVC_ACCOUNT"
         echo SVC_ACCOUNT_EMAIL="$SVC_ACCOUNT_EMAIL"
-        echo BACKEND_GCF="$BACKEND_GCF"        
+        echo BACKEND_GCF="$BACKEND_GCF"      
 
     # Authenticate with Google Cloud
     - name: Authenticate to Google Cloud
@@ -85,7 +86,7 @@ jobs:
       working-directory: app/ui_cr
       run: |
         gcloud auth configure-docker $REGION-docker.pkg.dev
-        gcloud builds submit --tag $CR_UI_IMAGE_NAME
+        gcloud builds submit --gcs-log-dir $BUILD_LOGS_BUCKET --tag $CR_UI_IMAGE_NAME
 
     - name: Deploy to Cloud Run
       run: |
