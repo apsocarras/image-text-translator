@@ -1,5 +1,7 @@
 #!/bin/bash
 
+### Environment setup to be repeated with each new session ###
+
 export PROJECT_ID=$(gcloud config list --format='value(core.project)')
 export REGION=europe-west4
 export SVC_ACCOUNT=image-text-translator-sa
