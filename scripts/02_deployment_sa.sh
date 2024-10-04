@@ -1,3 +1,7 @@
+##############################################################
+# One-time creation of deployment sa account for use with GH #
+##############################################################
+
 # First, authenticate as a user who can create service accounts
 # gcloud auth login
 

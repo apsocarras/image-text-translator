@@ -23,7 +23,9 @@ It is built using:
     ├── infra-tf/               - Terraform for installing infra
     |
     ├── scripts/                - For environment setup and helper scripts
-    |   └── setup.sh            - Setup helper script
+    |   ├── 00_image-text-translator-sa-setup.sh  - Initial sa setup
+    |   ├── 01_env_setup.sh                       - Env setup - run with each new session
+    |   └── 02_deployment_sa.sh                   - Deployment sa setup
     |
     ├── app/                    - The Application
     │   ├── ui_cr/                - Browser UI (Cloud Run)
