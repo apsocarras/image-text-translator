@@ -1,3 +1,9 @@
+*sa_encoded*
+*.txt 
+*.json 
+
+.DS_Store
+
 # Env
 .env
 **/.*-env/
