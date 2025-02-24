@@ -42,7 +42,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 # Grant roles to our developer account, for deploying #
 #######################################################
 
-export MY_ORG=<enter your org domain>
+export MY_ORG=worldcentralkitchen.org
 
 # Grant the required role to the principal
 # that will attach the service account to other resources.
@@ -63,3 +63,11 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 gcloud projects add-iam-policy-binding $PROJECT_ID \
    --member="group:gcp-devops@$MY_ORG" \
    --role roles/run.admin
+
+
+## Create local service account .json 
+gcloud iam service-accounts keys create ~/.config/gcloud/$SVC_ACCOUNT.json \
+  --iam-account=$SVC_ACCOUNT_EMAIL
+
+# Base64 encode the key #
+base64 -i ~/.config/gcloud/$SVC_ACCOUNT.json -o "${SVC_ACCOUNT}_encoded.txt"

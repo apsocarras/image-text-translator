@@ -12,7 +12,7 @@
 
 export PROJECT_ID=$(gcloud config list --format='value(core.project)')
 
-export MY_ORG=<enter your org domain>
+export MY_ORG=worldcentralkitchen.org
 export GH_SVC_ACCOUNT=image-text-translator-gh-sa
 export GH_SVC_ACCOUNT_EMAIL=$GH_SVC_ACCOUNT@$PROJECT_ID.iam.gserviceaccount.com
 
@@ -55,4 +55,4 @@ gcloud iam service-accounts keys create ~/.config/gcloud/$GH_SVC_ACCOUNT.json \
   --iam-account=$GH_SVC_ACCOUNT_EMAIL
 
 # Base64 encode the key #
-base64 ~/.config/gcloud/$GH_SVC_ACCOUNT.json > "${GH_SVC_ACCOUNT}_encoded.txt"
+base64 -i ~/.config/gcloud/$GH_SVC_ACCOUNT.json -o "${GH_SVC_ACCOUNT}_encoded.txt"
