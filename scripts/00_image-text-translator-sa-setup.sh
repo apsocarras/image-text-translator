@@ -48,20 +48,20 @@ export MY_ORG=worldcentralkitchen.org
 # that will attach the service account to other resources.
 # Here we assume your developer account is a member of the gcp-devops group.
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="group:gcp-devops@$MY_ORG" \
+  --member="serviceAccount:$SVC_ACCOUNT_EMAIL" \
   --role=roles/iam.serviceAccountUser
 
 # Allow service account impersonation
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="group:gcp-devops@$MY_ORG" \
+  --member="serviceAccount:$SVC_ACCOUNT_EMAIL" \
   --role=roles/iam.serviceAccountTokenCreator
 
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-   --member="group:gcp-devops@$MY_ORG" \
+  --member="serviceAccount:$SVC_ACCOUNT_EMAIL" \
    --role roles/cloudfunctions.admin
 
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-   --member="group:gcp-devops@$MY_ORG" \
+  --member="serviceAccount:$SVC_ACCOUNT_EMAIL" \
    --role roles/run.admin
 
 
