@@ -1,0 +1,54 @@
+#!/bin/bash 
+
+## Create a service account for working with Github and Github Actions 
+
+# First, authenticate as a user who can create service accounts
+# gcloud auth login
+
+# Check correct project is selected
+# gcloud config list project
+# export PROJECT_ID=<enter your project ID>
+# gcloud config set project $PROJECT_ID
+
+export PROJECT_ID=$(gcloud config list --format='value(core.project)')
+
+export MY_ORG="worldcentralkitchen.org"
+export GH_SVC_ACCOUNT=image-text-translator-gh-sa 
+export GH_SVC_ACCOUNT_EMAIL=$GH_SVC_ACCOUNT@$PROJECT_ID.iam.gserviceaccount.com
+
+gcloud iam service-accounts create $GH_SVC_ACCOUNT
+
+# Allow service account to access GCS Cloud Build bucket
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$GH_SVC_ACCOUNT_EMAIL" \
+  --role="roles/storage.admin"
+
+# Allow service account to run and manage Cloud Build jobs
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$GH_SVC_ACCOUNT_EMAIL" \
+  --role="roles/cloudbuild.builds.editor"
+
+# Allow service account access to logs
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$GH_SVC_ACCOUNT_EMAIL" \
+  --role="roles/logging.viewer"
+
+# Allow this service account to deploy
+gcloud iam service-accounts add-iam-policy-binding $GH_SVC_ACCOUNT_EMAIL \
+  --member="serviceAccount:$GH_SVC_ACCOUNT_EMAIL" \
+  --role="roles/iam.serviceAccountUser"
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$GH_SVC_ACCOUNT_EMAIL" \
+  --role=roles/run.admin
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$GH_SVC_ACCOUNT_EMAIL" \
+  --role=roles/cloudfunctions.admin
+
+
+### Create the service account key locally ###
+gcloud iam service-accounts keys create ~/.config/gcloud/$GH_SVC_ACCOUNT.json \
+  --iam-account=$GH_SVC_ACCOUNT_EMAIL
+base64 -i ~/.config/gcloud/$GH_SVC_ACCOUNT.json -o "${GH_SVC_ACCOUNT}_encoded.txt"
+## Copy the contents of the encoded file and paste into the GitHub repository secret field. 
